@@ -1,14 +1,8 @@
 import { useEffect } from "react";
 import "@mantine/core/styles.css";
-import {
-	MantineProvider,
-	Center,
-	Loader,
-	Text,
-	Stack,
-	Button,
-	Group,
-} from "@mantine/core";
+import "@mantine/nprogress/styles.css";
+import { MantineProvider, Center, Loader } from "@mantine/core";
+import { RouterProvider } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "@/app/hooks";
 import {
 	keycloak,
@@ -18,13 +12,11 @@ import {
 	setAuthenticated,
 	clearAuth,
 } from "@/features/auth";
-import { toggleColorScheme } from "@/features/theme";
+import { router, NavigationProgress } from "@/router";
 
 function App() {
 	const dispatch = useAppDispatch();
-	const { isInitialized, isAuthenticated, user } = useAppSelector(
-		(state) => state.auth,
-	);
+	const { isInitialized } = useAppSelector((state) => state.auth);
 	const { colorScheme } = useAppSelector((state) => state.theme);
 
 	useEffect(() => {
@@ -80,41 +72,10 @@ function App() {
 		);
 	}
 
-	// Temporary UI to demonstrate auth and theme state
 	return (
 		<MantineProvider forceColorScheme={resolvedScheme}>
-			<Center h="100vh">
-				<Stack align="center" gap="md">
-					<Button onClick={() => dispatch(toggleColorScheme())}>
-						Toggle Theme ({colorScheme})
-					</Button>
-
-					{isAuthenticated && user ? (
-						<>
-							<Text size="xl">Welcome, {user.name || user.username}!</Text>
-							<Text c="dimmed">{user.email}</Text>
-							<Text size="sm" c="dimmed">
-								Roles: {user.roles.join(", ") || "none"}
-							</Text>
-							<Group>
-								<Button variant="outline" onClick={() => keycloak.logout()}>
-									Logout
-								</Button>
-							</Group>
-						</>
-					) : (
-						<>
-							<Text size="xl">Not authenticated</Text>
-							<Group>
-								<Button onClick={() => keycloak.login()}>Login</Button>
-								<Button variant="outline" onClick={() => keycloak.register()}>
-									Register
-								</Button>
-							</Group>
-						</>
-					)}
-				</Stack>
-			</Center>
+			<NavigationProgress />
+			<RouterProvider router={router} />
 		</MantineProvider>
 	);
 }
