@@ -1,0 +1,14 @@
+# robots.txt for Minifi
+
+User-agent: *
+Allow: /
+Disallow: /dashboard/
+Disallow: /admin/
+Disallow: /settings/
+
+# Public pages (allow indexing)
+Allow: /$
+Allow: /r/
+
+# Sitemap
+Sitemap: https://minifi-url.vercel.app/sitemap.xml

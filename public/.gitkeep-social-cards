@@ -1,0 +1,35 @@
+# Social Card Images
+
+Create the following images for social sharing:
+
+## og-image.png
+- Size: 1200x630px
+- Format: PNG or JPG
+- Used by: Facebook, LinkedIn, other Open Graph platforms
+- Design tips:
+  - Feature your logo/brand
+  - Show main value proposition: "Minifi - Free URL Shortener"
+  - Include URL: https://minifi-url.vercel.app
+  - Use high contrast colors
+  - Avoid text near edges (safe zone: 40px)
+
+## twitter-card.png
+- Size: 1200x628px (or 1200x675px for larger cards)
+- Format: PNG or JPG
+- Used by: Twitter/X
+- Design tips:
+  - Similar to og-image but optimized for Twitter
+  - Can be the same as og-image in most cases
+
+## Current placeholders needed:
+- /public/og-image.png (1200x630px)
+- /public/twitter-card.png (1200x628px)
+
+Referenced in meta tags as:
+- https://minifi-url.vercel.app/og-image.png
+- https://minifi-url.vercel.app/twitter-card.png
+
+Use tools like:
+- Canva (canva.com)
+- Figma (figma.com)
+- OG Image Generator (og-playground.vercel.app)
