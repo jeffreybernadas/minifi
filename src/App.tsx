@@ -13,6 +13,7 @@ import {
 	clearAuth,
 } from "@/features/auth";
 import { router, NavigationProgress } from "@/router";
+import { theme } from "@/styles/theme";
 
 function App() {
 	const dispatch = useAppDispatch();
@@ -64,7 +65,7 @@ function App() {
 	// Show loading while Keycloak initializes
 	if (!isInitialized) {
 		return (
-			<MantineProvider forceColorScheme={resolvedScheme}>
+			<MantineProvider theme={theme} forceColorScheme={resolvedScheme}>
 				<Center h="100vh">
 					<Loader size="lg" />
 				</Center>
@@ -73,7 +74,7 @@ function App() {
 	}
 
 	return (
-		<MantineProvider forceColorScheme={resolvedScheme}>
+		<MantineProvider theme={theme} forceColorScheme={resolvedScheme}>
 			<NavigationProgress />
 			<RouterProvider router={router} />
 		</MantineProvider>
