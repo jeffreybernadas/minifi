@@ -13,17 +13,16 @@ import {
 } from "redux-persist";
 import storage from "redux-persist/lib/storage";
 import { baseApi } from "./api/base.api";
+import authReducer from "@/features/auth/auth.slice";
+import themeReducer from "@/features/theme/theme.slice";
 
 /**
  * Root reducer combining all slices
  */
 const rootReducer = combineReducers({
-	// RTK Query API reducer (not persisted)
 	[baseApi.reducerPath]: baseApi.reducer,
-	// Feature slices will be added here
-	// auth: authReducer,
-	// theme: themeReducer,
-	// chat: chatReducer,
+	auth: authReducer,
+	theme: themeReducer,
 });
 
 // Infer root state type from rootReducer
@@ -47,23 +46,12 @@ const persistConfig: PersistConfig<RootReducerState> = {
 const persistedReducer = persistReducer(persistConfig, rootReducer);
 
 /**
- * Middleware configuration shared between test and production stores
+ * Middleware configuration
  */
 const middlewareConfig = {
 	serializableCheck: {
-		// Ignore redux-persist actions
-		ignoredActions: [
-			FLUSH,
-			REHYDRATE,
-			PAUSE,
-			PERSIST,
-			PURGE,
-			REGISTER,
-			// Keycloak instance is non-serializable
-			"auth/setKeycloak",
-		],
-		// Ignore these paths in the state
-		ignoredPaths: ["auth.keycloak", "_persist"],
+		ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
+		ignoredPaths: ["_persist"],
 	},
 };
 
