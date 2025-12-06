@@ -1,34 +1,38 @@
 import { useState } from "react";
-import reactLogo from "./assets/react.svg";
-import viteLogo from "/vite.svg";
-import "./App.css";
+import "@mantine/core/styles.css";
 
+import { MantineProvider, Stepper, Button, Group } from "@mantine/core";
 function App() {
-	const [count, setCount] = useState(0);
+	const [active, setActive] = useState(1);
+	const nextStep = () =>
+		setActive((current) => (current < 3 ? current + 1 : current));
+	const prevStep = () =>
+		setActive((current) => (current > 0 ? current - 1 : current));
 
 	return (
-		<>
-			<div>
-				<a href="https://vite.dev" target="_blank" rel="noopener">
-					<img src={viteLogo} className="logo" alt="Vite logo" />
-				</a>
-				<a href="https://react.dev" target="_blank" rel="noopener">
-					<img src={reactLogo} className="logo react" alt="React logo" />
-				</a>
-			</div>
-			<h1>Vite + React</h1>
-			<div className="card">
-				<button type="button" onClick={() => setCount((count) => count + 1)}>
-					count is {count}
-				</button>
-				<p>
-					Edit <code>src/App.tsx</code> and save to test HMR
-				</p>
-			</div>
-			<p className="read-the-docs">
-				Click on the Vite and React logos to learn more
-			</p>
-		</>
+		<MantineProvider>
+			<Stepper active={active} onStepClick={setActive}>
+				<Stepper.Step label="First step" description="Create an account">
+					Step 1 content: Create an account
+				</Stepper.Step>
+				<Stepper.Step label="Second step" description="Verify email">
+					Step 2 content: Verify email
+				</Stepper.Step>
+				<Stepper.Step label="Final step" description="Get full access">
+					Step 3 content: Get full access
+				</Stepper.Step>
+				<Stepper.Completed>
+					Completed, click back button to get to previous step
+				</Stepper.Completed>
+			</Stepper>
+
+			<Group justify="center" mt="xl">
+				<Button variant="default" onClick={prevStep}>
+					Back
+				</Button>
+				<Button onClick={nextStep}>Next step</Button>
+			</Group>
+		</MantineProvider>
 	);
 }
 

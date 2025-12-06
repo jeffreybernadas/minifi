@@ -5,24 +5,37 @@ import userEvent from "@testing-library/user-event";
 import App from "../App";
 
 describe("App", () => {
-	it("renders main UI and increments counter", async () => {
+	it("walks through the stepper flow", async () => {
+		const user = userEvent.setup();
 		render(<App />);
 
-		expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
-			"Vite + React",
-		);
 		expect(
-			screen.getByRole("link", { name: /vite logo/i }),
-		).toBeInTheDocument();
-		expect(
-			screen.getByRole("link", { name: /react logo/i }),
+			screen.getByText("Step 2 content: Verify email"),
 		).toBeInTheDocument();
 
-		const button = screen.getByRole("button", { name: /count is/i });
-		expect(button).toHaveTextContent("count is 0");
+		await user.click(screen.getByRole("button", { name: "Back" }));
+		expect(
+			screen.getByText("Step 1 content: Create an account"),
+		).toBeInTheDocument();
 
-		await userEvent.click(button);
+		await user.click(screen.getByRole("button", { name: "Next step" }));
+		expect(
+			screen.getByText("Step 2 content: Verify email"),
+		).toBeInTheDocument();
 
-		expect(button).toHaveTextContent("count is 1");
+		await user.click(screen.getByRole("button", { name: "Next step" }));
+		expect(
+			screen.getByText("Step 3 content: Get full access"),
+		).toBeInTheDocument();
+
+		await user.click(screen.getByRole("button", { name: "Next step" }));
+		expect(
+			screen.getByText("Completed, click back button to get to previous step"),
+		).toBeInTheDocument();
+
+		await user.click(screen.getByRole("button", { name: "Back" }));
+		expect(
+			screen.getByText("Step 3 content: Get full access"),
+		).toBeInTheDocument();
 	});
 });

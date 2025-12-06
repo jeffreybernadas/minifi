@@ -17,7 +17,7 @@ pnpm lint-staged ||
         false
     )
 
-npm run test -- --watchAll=false ||
+npm run test ||
     (
         echo '❌ Test check failed. Make the required changes listed above. Add those changes and try to commit again.'
         false
