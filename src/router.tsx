@@ -1,12 +1,13 @@
 import { Suspense } from "react";
-import { createBrowserRouter, Navigate, Outlet } from "react-router-dom";
+import { createBrowserRouter, Navigate } from "react-router-dom";
 import { NavigationProgress, nprogress } from "@mantine/nprogress";
 import { useAppSelector } from "@/app/hooks";
+import { AppShell } from "@/components/layout";
 
 /**
  * Auth Guard - Redirects to landing if not authenticated
  */
-function AuthGuard() {
+function AuthGuard({ children }: { children: React.ReactNode }) {
 	const { isAuthenticated, isInitialized } = useAppSelector(
 		(state) => state.auth,
 	);
@@ -19,17 +20,13 @@ function AuthGuard() {
 		return <Navigate to="/" replace />;
 	}
 
-	return (
-		<Suspense fallback={null}>
-			<Outlet />
-		</Suspense>
-	);
+	return <Suspense fallback={null}>{children}</Suspense>;
 }
 
 /**
  * Admin Guard - Redirects to dashboard if not admin
  */
-function AdminGuard() {
+function AdminGuard({ children }: { children: React.ReactNode }) {
 	const { isAuthenticated, isInitialized, user } = useAppSelector(
 		(state) => state.auth,
 	);
@@ -50,11 +47,7 @@ function AdminGuard() {
 		return <Navigate to="/dashboard" replace />;
 	}
 
-	return (
-		<Suspense fallback={null}>
-			<Outlet />
-		</Suspense>
-	);
+	return <Suspense fallback={null}>{children}</Suspense>;
 }
 
 /**
@@ -78,29 +71,38 @@ function AdminGuard() {
  * - /admin/links
  */
 export const router = createBrowserRouter([
-	// Public routes
+	// Public routes (no sidebar)
 	{
-		path: "/",
-		lazy: async () => {
-			nprogress.start();
-			const module = await import("@/pages/LandingPage");
-			nprogress.complete();
-			return { Component: module.default };
-		},
-	},
-	{
-		path: "/r/:code",
-		lazy: async () => {
-			nprogress.start();
-			const module = await import("@/pages/RedirectPage");
-			nprogress.complete();
-			return { Component: module.default };
-		},
+		element: <AppShell withSidebar={false} />,
+		children: [
+			{
+				path: "/",
+				lazy: async () => {
+					nprogress.start();
+					const module = await import("@/pages/LandingPage");
+					nprogress.complete();
+					return { Component: module.default };
+				},
+			},
+			{
+				path: "/r/:code",
+				lazy: async () => {
+					nprogress.start();
+					const module = await import("@/pages/RedirectPage");
+					nprogress.complete();
+					return { Component: module.default };
+				},
+			},
+		],
 	},
 
-	// Protected routes (require authentication)
+	// Protected routes (require authentication, with sidebar)
 	{
-		element: <AuthGuard />,
+		element: (
+			<AuthGuard>
+				<AppShell withSidebar={true} />
+			</AuthGuard>
+		),
 		children: [
 			{
 				path: "/dashboard",
@@ -159,9 +161,13 @@ export const router = createBrowserRouter([
 		],
 	},
 
-	// Admin routes (require admin role)
+	// Admin routes (require admin role, with sidebar)
 	{
-		element: <AdminGuard />,
+		element: (
+			<AdminGuard>
+				<AppShell withSidebar={true} />
+			</AdminGuard>
+		),
 		children: [
 			{
 				path: "/admin",
