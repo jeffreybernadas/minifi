@@ -1,4 +1,12 @@
-import { Avatar, Group, Menu, rem, Text, UnstyledButton } from "@mantine/core";
+import {
+	Avatar,
+	Badge,
+	Group,
+	Menu,
+	rem,
+	Text,
+	UnstyledButton,
+} from "@mantine/core";
 import {
 	IconLogout,
 	IconSelector,
@@ -33,13 +41,31 @@ export function UserButton() {
 						/>
 
 						<div className={classes.userInfo}>
-							<Text size="sm" fw={500} lineClamp={1}>
-								{profile?.name || "Loading..."}
-							</Text>
+							<Group gap={4} wrap="nowrap">
+								<Text size="sm" fw={500} lineClamp={1}>
+									{profile?.name || "Loading..."}
+								</Text>
+								{profile?.isAdmin && (
+									<Badge size="xs" color="red" variant="filled">
+										ADMIN
+									</Badge>
+								)}
+							</Group>
 
-							<Text c="dimmed" size="xs" lineClamp={1}>
-								{profile?.email || "Loading..."}
-							</Text>
+							<Group gap={4} wrap="nowrap">
+								<Text c="dimmed" size="xs" lineClamp={1}>
+									{profile?.email || "Loading..."}
+								</Text>
+								{profile?.userType && (
+									<Badge
+										size="xs"
+										color={profile.userType === "PRO" ? "violet" : "gray"}
+										variant="light"
+									>
+										{profile.userType}
+									</Badge>
+								)}
+							</Group>
 						</div>
 
 						<IconSelector size={16} stroke={1.5} className={classes.icon} />

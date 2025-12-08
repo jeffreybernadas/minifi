@@ -3,6 +3,7 @@ import {
 	Title,
 	Paper,
 	Avatar,
+	Badge,
 	Group,
 	Text,
 	Button,
@@ -179,7 +180,25 @@ export default function ProfilePage() {
 
 	return (
 		<Stack gap="lg">
-			<Title order={1}>Profile</Title>
+			<Group justify="space-between" align="center">
+				<Title order={1}>Profile</Title>
+				<Group gap="xs">
+					{profile?.isAdmin && (
+						<Badge size="lg" color="red" variant="filled">
+							ADMIN
+						</Badge>
+					)}
+					{profile?.userType && (
+						<Badge
+							size="lg"
+							color={profile.userType === "PRO" ? "violet" : "gray"}
+							variant="light"
+						>
+							{profile.userType}
+						</Badge>
+					)}
+				</Group>
+			</Group>
 
 			<Paper shadow="sm" p="xl" withBorder pos="relative">
 				<LoadingOverlay visible={isLoading} />

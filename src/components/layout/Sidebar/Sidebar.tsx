@@ -5,7 +5,7 @@ import {
 	IconPresentationAnalytics,
 	IconTags,
 } from "@tabler/icons-react";
-import { useAppSelector } from "@/app/hooks";
+import { useAuth } from "@/hooks";
 import { LinksGroup, Logo, UserButton } from "@/components/ui";
 import packageJson from "../../../../package.json";
 import classes from "./Sidebar.module.css";
@@ -38,11 +38,7 @@ const adminNavigation = [
 ];
 
 export function Sidebar() {
-	const { user } = useAppSelector((state) => state.auth);
-
-	const isAdmin =
-		user?.roles.some((role) => role === "admin" || role === "superadmin") ??
-		false;
+	const { isAdmin } = useAuth();
 
 	// Combine user navigation with admin navigation if user is admin
 	const navigationData = isAdmin

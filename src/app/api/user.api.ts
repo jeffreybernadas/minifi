@@ -20,6 +20,10 @@ export interface UserProfile {
 	avatarUrl?: string | null;
 	address?: string | null;
 
+	// Subscription tier & role
+	userType: "GUEST" | "FREE" | "PRO";
+	isAdmin: boolean;
+
 	// Metadata
 	createdAt: string;
 	updatedAt: string;

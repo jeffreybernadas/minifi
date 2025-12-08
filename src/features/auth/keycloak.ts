@@ -30,6 +30,10 @@ export const keycloakInitOptions: Keycloak.KeycloakInitOptions = {
 
 /**
  * Extract user info from Keycloak token
+ * Combines realm roles and client-specific roles
+ *
+ * Used during initial authentication to populate Redux state.
+ * For checking roles/admin status in components, use hooks from @/hooks.
  */
 export const getUserFromToken = (): AuthUser | null => {
 	if (!keycloak.authenticated || !keycloak.tokenParsed) {
@@ -37,26 +41,23 @@ export const getUserFromToken = (): AuthUser | null => {
 	}
 
 	const token = keycloak.tokenParsed;
+
+	// Combine realm roles and client-specific roles
+	const realmRoles = token.realm_access?.roles ?? [];
+	const clientRoles =
+		(
+			token.resource_access?.[VITE_KEYCLOAK_CLIENT_ID] as {
+				roles?: string[];
+			}
+		)?.roles ?? [];
+	const allRoles = [...new Set([...realmRoles, ...clientRoles])]; // Deduplicate
+
 	return {
 		id: keycloak.subject ?? "",
 		email: (token.email as string) ?? "",
 		name: (token.name as string) ?? "",
 		username: (token.preferred_username as string) ?? "",
-		roles: token.realm_access?.roles ?? [],
+		roles: allRoles,
 		picture: (token.picture as string) ?? "",
 	};
-};
-
-/**
- * Check if user has a specific role
- */
-export const hasRole = (role: string): boolean => {
-	return keycloak.hasRealmRole(role);
-};
-
-/**
- * Check if user is an admin
- */
-export const isAdmin = (): boolean => {
-	return hasRole("admin") || hasRole("superadmin");
 };

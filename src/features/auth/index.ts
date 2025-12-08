@@ -7,10 +7,7 @@ export {
 	setAuthenticated,
 	setInitialized,
 } from "./auth.slice";
-export {
-	getUserFromToken,
-	hasRole,
-	isAdmin,
-	keycloak,
-	keycloakInitOptions,
-} from "./keycloak";
+export { getUserFromToken, keycloak, keycloakInitOptions } from "./keycloak";
+
+// Re-export auth hook from centralized location
+export { useAuth, type UseAuthReturn } from "@/hooks";
