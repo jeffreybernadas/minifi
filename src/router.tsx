@@ -150,6 +150,15 @@ export const router = createBrowserRouter([
 				},
 			},
 			{
+				path: "/dashboard/profile",
+				lazy: async () => {
+					nprogress.start();
+					const module = await import("@/pages/dashboard/ProfilePage");
+					nprogress.complete();
+					return { Component: module.default };
+				},
+			},
+			{
 				path: "/dashboard/settings",
 				lazy: async () => {
 					nprogress.start();

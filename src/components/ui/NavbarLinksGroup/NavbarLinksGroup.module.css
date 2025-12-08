@@ -6,12 +6,20 @@
   color: var(--mantine-color-text);
   font-size: var(--mantine-font-size-sm);
 
-  @mixin hover {
-    background-color: light-dark(
-      var(--mantine-color-gray-0),
-      var(--mantine-color-dark-6)
-    );
-    color: light-dark(var(--mantine-color-black), var(--mantine-color-dark-0));
+  &:not([data-active]) {
+    @mixin hover {
+      background-color: light-dark(
+        var(--mantine-color-gray-0),
+        var(--mantine-color-dark-6)
+      );
+      color: light-dark(var(--mantine-color-black), var(--mantine-color-dark-0));
+    }
+  }
+
+  &[data-active],
+  &[data-active]:hover {
+    background-color: var(--mantine-primary-color-light);
+    color: var(--mantine-primary-color-filled);
   }
 }
 
@@ -27,12 +35,21 @@
   border-left: 1px solid
     light-dark(var(--mantine-color-gray-3), var(--mantine-color-dark-4));
 
-  @mixin hover {
-    background-color: light-dark(
-      var(--mantine-color-gray-0),
-      var(--mantine-color-dark-6)
-    );
-    color: light-dark(var(--mantine-color-black), var(--mantine-color-dark-0));
+  &:not([data-active]) {
+    @mixin hover {
+      background-color: light-dark(
+        var(--mantine-color-gray-0),
+        var(--mantine-color-dark-6)
+      );
+      color: light-dark(var(--mantine-color-black), var(--mantine-color-dark-0));
+    }
+  }
+
+  &[data-active],
+  &[data-active]:hover {
+    background-color: var(--mantine-primary-color-light);
+    color: var(--mantine-primary-color-filled);
+    border-left-color: var(--mantine-primary-color-filled);
   }
 }
 

@@ -42,9 +42,9 @@ export function Header({
 
 	const headerContent = (
 		<Group h="100%" justify="space-between">
-			{/* Left: Logo + Burger */}
+			{/* Left: Burger (when sidebar shown) or Logo (public pages) */}
 			<Group>
-				{withSidebar && (
+				{withSidebar ? (
 					<>
 						<Burger
 							opened={mobileOpened}
@@ -59,8 +59,9 @@ export function Header({
 							size="sm"
 						/>
 					</>
+				) : (
+					<Logo />
 				)}
-				<Logo />
 			</Group>
 
 			{/* Right: Theme toggle + User menu */}
