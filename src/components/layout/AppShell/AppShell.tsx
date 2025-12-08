@@ -1,6 +1,7 @@
 import { Container, AppShell as MantineAppShell } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { Outlet } from "react-router-dom";
+import { useGetUserProfileQuery } from "@/app/api/user.api";
 import { Footer } from "../Footer";
 import { Header } from "../Header";
 import { Sidebar } from "../Sidebar";
@@ -13,6 +14,13 @@ interface AppShellProps {
 export function AppShell({ withSidebar = false }: AppShellProps) {
 	const [mobileOpened, { toggle: toggleMobile }] = useDisclosure();
 	const [desktopOpened, { toggle: toggleDesktop }] = useDisclosure(true);
+
+	// Pre-fetch user profile for authenticated pages (with sidebar)
+	// This ensures profile data is available for UserButton and other components
+	// Skip query if not authenticated (withSidebar=false)
+	useGetUserProfileQuery(undefined, {
+		skip: !withSidebar,
+	});
 
 	return (
 		<MantineAppShell

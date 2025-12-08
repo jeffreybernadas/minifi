@@ -6,12 +6,12 @@ import {
 	IconUser,
 } from "@tabler/icons-react";
 import { Link } from "react-router-dom";
-import { useAppSelector } from "@/app/hooks";
+import { useGetUserProfileQuery } from "@/app/api/user.api";
 import { keycloak } from "@/features/auth";
 import classes from "./UserButton.module.css";
 
 export function UserButton() {
-	const { user } = useAppSelector((state) => state.auth);
+	const { data: profile } = useGetUserProfileQuery();
 
 	return (
 		<Menu
@@ -25,7 +25,8 @@ export function UserButton() {
 					<Group wrap="nowrap">
 						<Avatar
 							src={
-								user?.picture || "https://avatars.githubusercontent.com/u/0?v=0"
+								profile?.avatarUrl ||
+								"https://avatars.githubusercontent.com/u/0?v=0"
 							}
 							radius="xl"
 							size={38}
@@ -33,11 +34,11 @@ export function UserButton() {
 
 						<div className={classes.userInfo}>
 							<Text size="sm" fw={500} lineClamp={1}>
-								{user?.name || "User"}
+								{profile?.name || "Loading..."}
 							</Text>
 
 							<Text c="dimmed" size="xs" lineClamp={1}>
-								{user?.email || "user@example.com"}
+								{profile?.email || "Loading..."}
 							</Text>
 						</div>
 

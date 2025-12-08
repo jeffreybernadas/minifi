@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import "@mantine/core/styles.css";
 import "@mantine/nprogress/styles.css";
+import "@mantine/notifications/styles.css";
 import { Center, Loader, MantineProvider } from "@mantine/core";
 import { RouterProvider } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "@/app/hooks";
@@ -14,6 +15,7 @@ import {
 } from "@/features/auth";
 import { NavigationProgress, router } from "@/router";
 import { theme } from "@/styles/theme";
+import { Notifications } from "@mantine/notifications";
 
 function App() {
 	const dispatch = useAppDispatch();
@@ -75,6 +77,7 @@ function App() {
 
 	return (
 		<MantineProvider theme={theme} forceColorScheme={resolvedScheme}>
+			<Notifications position="top-right" zIndex={1000} />
 			<NavigationProgress />
 			<RouterProvider router={router} />
 		</MantineProvider>
