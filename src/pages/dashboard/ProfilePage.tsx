@@ -3,7 +3,6 @@ import {
 	Title,
 	Paper,
 	Avatar,
-	Badge,
 	Group,
 	Text,
 	Button,
@@ -29,6 +28,7 @@ import {
 	VITE_KEYCLOAK_REALM,
 } from "@/constants/env.constant";
 import { getErrorMessage } from "@/types/api.types";
+import { UserBadges } from "@/components/ui";
 
 export default function ProfilePage() {
 	const {
@@ -182,22 +182,11 @@ export default function ProfilePage() {
 		<Stack gap="lg">
 			<Group justify="space-between" align="center">
 				<Title order={1}>Profile</Title>
-				<Group gap="xs">
-					{profile?.isAdmin && (
-						<Badge size="lg" color="red" variant="filled">
-							ADMIN
-						</Badge>
-					)}
-					{profile?.userType && (
-						<Badge
-							size="lg"
-							color={profile.userType === "PRO" ? "violet" : "gray"}
-							variant="light"
-						>
-							{profile.userType}
-						</Badge>
-					)}
-				</Group>
+				<UserBadges
+					isAdmin={profile?.isAdmin}
+					userType={profile?.userType}
+					size="lg"
+				/>
 			</Group>
 
 			<Paper shadow="sm" p="xl" withBorder pos="relative">
