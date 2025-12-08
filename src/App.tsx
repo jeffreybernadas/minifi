@@ -16,6 +16,7 @@ import {
 import { NavigationProgress, router } from "@/router";
 import { theme } from "@/styles/theme";
 import { Notifications } from "@mantine/notifications";
+import { ModalsProvider } from "@mantine/modals";
 
 function App() {
 	const dispatch = useAppDispatch();
@@ -77,9 +78,11 @@ function App() {
 
 	return (
 		<MantineProvider theme={theme} forceColorScheme={resolvedScheme}>
-			<Notifications position="top-right" zIndex={1000} />
-			<NavigationProgress />
-			<RouterProvider router={router} />
+			<ModalsProvider>
+				<Notifications position="top-right" zIndex={1000} />
+				<NavigationProgress />
+				<RouterProvider router={router} />
+			</ModalsProvider>
 		</MantineProvider>
 	);
 }
