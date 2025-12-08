@@ -1,17 +1,17 @@
+import { Code, Group, ScrollArea } from "@mantine/core";
 import {
 	IconGauge,
+	IconLayoutDashboard,
 	IconPresentationAnalytics,
 	IconTags,
-	IconLayoutDashboard,
 } from "@tabler/icons-react";
-import { Code, Group, ScrollArea } from "@mantine/core";
-import { UserButton, LinksGroup, Logo } from "@/components/ui";
 import { useAppSelector } from "@/app/hooks";
-import classes from "./Sidebar.module.css";
+import { LinksGroup, Logo, UserButton } from "@/components/ui";
 import packageJson from "../../../../package.json";
+import classes from "./Sidebar.module.css";
 
 const userNavigation = [
-	{ label: "Dashboard", icon: IconGauge },
+	{ label: "Dashboard", icon: IconGauge, link: "/dashboard" },
 	{
 		label: "Analytics",
 		icon: IconPresentationAnalytics,
@@ -22,7 +22,7 @@ const userNavigation = [
 			{ label: "Device Analytics", link: "/dashboard/analytics/devices" },
 		],
 	},
-	{ label: "Tags", icon: IconTags },
+	{ label: "Tags", icon: IconTags, link: "/dashboard/tags" },
 ];
 
 const adminNavigation = [

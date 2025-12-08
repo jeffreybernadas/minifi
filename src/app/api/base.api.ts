@@ -1,9 +1,9 @@
 import {
-	createApi,
-	fetchBaseQuery,
 	type BaseQueryFn,
+	createApi,
 	type FetchArgs,
 	type FetchBaseQueryError,
+	fetchBaseQuery,
 } from "@reduxjs/toolkit/query/react";
 import { VITE_API_BASE_URL } from "@/constants/env.constant";
 import { keycloak } from "@/features/auth/keycloak";

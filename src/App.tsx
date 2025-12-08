@@ -1,18 +1,18 @@
 import { useEffect } from "react";
 import "@mantine/core/styles.css";
 import "@mantine/nprogress/styles.css";
-import { MantineProvider, Center, Loader } from "@mantine/core";
+import { Center, Loader, MantineProvider } from "@mantine/core";
 import { RouterProvider } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "@/app/hooks";
 import {
+	clearAuth,
+	getUserFromToken,
 	keycloak,
 	keycloakInitOptions,
-	getUserFromToken,
-	setInitialized,
 	setAuthenticated,
-	clearAuth,
+	setInitialized,
 } from "@/features/auth";
-import { router, NavigationProgress } from "@/router";
+import { NavigationProgress, router } from "@/router";
 import { theme } from "@/styles/theme";
 
 function App() {

@@ -1,4 +1,4 @@
-import { Group, Anchor, Text } from "@mantine/core";
+import { Anchor, Group, Text } from "@mantine/core";
 import { Link } from "react-router-dom";
 
 export function Footer() {

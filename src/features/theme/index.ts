@@ -1,9 +1,8 @@
 export {
-	themeSlice,
+	default as themeReducer,
 	setColorScheme,
-	toggleColorScheme,
 	setPrimaryColor,
 	type ThemeState,
+	themeSlice,
+	toggleColorScheme,
 } from "./theme.slice";
-
-export { default as themeReducer } from "./theme.slice";

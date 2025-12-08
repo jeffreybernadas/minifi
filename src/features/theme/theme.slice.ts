@@ -1,5 +1,5 @@
-import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 import type { MantineColorScheme } from "@mantine/core";
+import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 
 /**
  * Theme state shape

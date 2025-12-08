@@ -1,17 +1,17 @@
 import {
-	Group,
-	Burger,
 	ActionIcon,
+	Burger,
+	Container,
+	Group,
+	rem,
 	Text,
 	UnstyledButton,
-	rem,
-	Container,
 } from "@mantine/core";
-import { IconSun, IconMoon } from "@tabler/icons-react";
+import { IconMoon, IconSun } from "@tabler/icons-react";
 import { useAppDispatch, useAppSelector } from "@/app/hooks";
-import { toggleColorScheme } from "@/features/theme";
-import { keycloak } from "@/features/auth";
 import { Logo } from "@/components/ui";
+import { keycloak } from "@/features/auth";
+import { toggleColorScheme } from "@/features/theme";
 import classes from "./Header.module.css";
 
 interface HeaderProps {

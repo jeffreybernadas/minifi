@@ -1,8 +1,8 @@
 import Keycloak from "keycloak-js";
 import {
-	VITE_KEYCLOAK_URL,
-	VITE_KEYCLOAK_REALM,
 	VITE_KEYCLOAK_CLIENT_ID,
+	VITE_KEYCLOAK_REALM,
+	VITE_KEYCLOAK_URL,
 } from "@/constants/env.constant";
 import type { AuthUser } from "./auth.slice";
 
@@ -43,6 +43,7 @@ export const getUserFromToken = (): AuthUser | null => {
 		name: (token.name as string) ?? "",
 		username: (token.preferred_username as string) ?? "",
 		roles: token.realm_access?.roles ?? [],
+		picture: (token.picture as string) ?? "",
 	};
 };
 

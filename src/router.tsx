@@ -1,6 +1,6 @@
+import { NavigationProgress, nprogress } from "@mantine/nprogress";
 import { Suspense } from "react";
 import { createBrowserRouter, Navigate } from "react-router-dom";
-import { NavigationProgress, nprogress } from "@mantine/nprogress";
 import { useAppSelector } from "@/app/hooks";
 import { AppShell } from "@/components/layout";
 

@@ -1,4 +1,4 @@
-import { Title, Text, Stack, Button, Group } from "@mantine/core";
+import { Button, Group, Stack, Text, Title } from "@mantine/core";
 import { Link } from "react-router-dom";
 
 export default function LandingPage() {

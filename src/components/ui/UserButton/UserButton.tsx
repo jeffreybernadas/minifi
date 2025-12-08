@@ -1,14 +1,14 @@
+import { Avatar, Group, Menu, rem, Text, UnstyledButton } from "@mantine/core";
 import {
+	IconLogout,
 	IconSelector,
 	IconSettings,
 	IconUser,
-	IconLogout,
 } from "@tabler/icons-react";
-import { Avatar, Group, Text, UnstyledButton, Menu, rem } from "@mantine/core";
 import { Link } from "react-router-dom";
-import classes from "./UserButton.module.css";
 import { useAppSelector } from "@/app/hooks";
 import { keycloak } from "@/features/auth";
+import classes from "./UserButton.module.css";
 
 export function UserButton() {
 	const { user } = useAppSelector((state) => state.auth);

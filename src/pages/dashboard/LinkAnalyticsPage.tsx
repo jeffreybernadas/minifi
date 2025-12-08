@@ -1,4 +1,4 @@
-import { Title, Text, Stack } from "@mantine/core";
+import { Stack, Text, Title } from "@mantine/core";
 import { useParams } from "react-router-dom";
 
 export default function LinkAnalyticsPage() {

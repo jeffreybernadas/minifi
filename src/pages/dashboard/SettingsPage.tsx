@@ -1,4 +1,4 @@
-import { Title, Text, Stack } from "@mantine/core";
+import { Stack, Text, Title } from "@mantine/core";
 
 export default function SettingsPage() {
 	return (

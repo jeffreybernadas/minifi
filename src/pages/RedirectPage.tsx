@@ -1,5 +1,5 @@
-import { Title, Text, Stack, Button } from "@mantine/core";
-import { useParams, Link } from "react-router-dom";
+import { Button, Stack, Text, Title } from "@mantine/core";
+import { Link, useParams } from "react-router-dom";
 
 export default function RedirectPage() {
 	const { code } = useParams();

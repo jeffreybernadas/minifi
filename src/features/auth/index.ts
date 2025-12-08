@@ -1,18 +1,16 @@
 export {
-	keycloak,
-	keycloakInitOptions,
+	type AuthState,
+	type AuthUser,
+	authSlice,
+	clearAuth,
+	default as authReducer,
+	setAuthenticated,
+	setInitialized,
+} from "./auth.slice";
+export {
 	getUserFromToken,
 	hasRole,
 	isAdmin,
+	keycloak,
+	keycloakInitOptions,
 } from "./keycloak";
-
-export {
-	authSlice,
-	setInitialized,
-	setAuthenticated,
-	clearAuth,
-	type AuthUser,
-	type AuthState,
-} from "./auth.slice";
-
-export { default as authReducer } from "./auth.slice";

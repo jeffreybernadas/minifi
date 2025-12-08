@@ -1,9 +1,9 @@
-import { AppShell as MantineAppShell, Container } from "@mantine/core";
+import { Container, AppShell as MantineAppShell } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { Outlet } from "react-router-dom";
+import { Footer } from "../Footer";
 import { Header } from "../Header";
 import { Sidebar } from "../Sidebar";
-import { Footer } from "../Footer";
 
 interface AppShellProps {
 	/** Whether to show the sidebar (for authenticated pages) */

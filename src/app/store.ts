@@ -1,20 +1,20 @@
 import { combineReducers, configureStore } from "@reduxjs/toolkit";
 import { setupListeners } from "@reduxjs/toolkit/query";
 import {
-	persistStore,
-	persistReducer,
 	FLUSH,
-	REHYDRATE,
 	PAUSE,
 	PERSIST,
-	PURGE,
-	REGISTER,
 	type PersistConfig,
+	PURGE,
+	persistReducer,
+	persistStore,
+	REGISTER,
+	REHYDRATE,
 } from "redux-persist";
 import storage from "redux-persist/lib/storage";
-import { baseApi } from "./api/base.api";
 import authReducer from "@/features/auth/auth.slice";
 import themeReducer from "@/features/theme/theme.slice";
+import { baseApi } from "./api/base.api";
 
 /**
  * Root reducer combining all slices
