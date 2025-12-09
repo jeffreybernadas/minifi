@@ -2,7 +2,6 @@ import {
 	Badge,
 	Box,
 	Button,
-	Card,
 	Divider,
 	Group,
 	List,
@@ -13,7 +12,6 @@ import {
 	Switch,
 	Tabs,
 	Text,
-	ThemeIcon,
 	Title,
 } from "@mantine/core";
 import { modals } from "@mantine/modals";
@@ -37,36 +35,13 @@ import {
 	useGetUserProfileQuery,
 	useUpdateUserPreferencesMutation,
 } from "@/app/api/user.api";
+import { PricingCards } from "@/components/ui";
 import { getErrorMessage } from "@/types/api.types";
 
 // Constants
 const FREE_LINK_LIMIT = 25;
 const FREE_RETENTION_DAYS = 90;
 const PRO_RETENTION_DAYS = 730;
-
-// Features comparison
-const FEATURES = {
-	free: [
-		"Up to 25 active links",
-		"90-day link retention",
-		"Link security scanning with OpenAI",
-		"Password protection",
-		"QR code generation",
-		"One-time links",
-		"Basic analytics",
-		"Link scheduling",
-		"Link tags",
-		"Link email notifications",
-	],
-	pro: [
-		"Everything in FREE",
-		"Unlimited links",
-		"2-year link retention",
-		"Advanced analytics",
-		"Custom aliases",
-		"Priority support with direct Chat",
-	],
-};
 
 export default function SettingsPage() {
 	const [activeTab, setActiveTab] = useState<string | null>("subscription");
@@ -279,84 +254,10 @@ function SubscriptionTab() {
 				<Text fw={500} mb="md">
 					Plan Features
 				</Text>
-
-				<Group align="flex-start" grow>
-					{/* FREE Plan */}
-					<Card
-						withBorder
-						p="lg"
-						bg={!isPro ? "var(--mantine-color-blue-light)" : undefined}
-					>
-						<Stack gap="sm">
-							<Group justify="space-between">
-								<Text fw={600}>FREE</Text>
-								<Text fw={700} size="xl">
-									$0
-								</Text>
-							</Group>
-							<List
-								spacing="xs"
-								size="sm"
-								icon={
-									<ThemeIcon size={18} radius="xl" color="gray">
-										<IconCheck size={12} />
-									</ThemeIcon>
-								}
-							>
-								{FEATURES.free.map((feature) => (
-									<List.Item key={feature}>{feature}</List.Item>
-								))}
-							</List>
-							{!isPro && (
-								<Badge color="blue" variant="light" mt="xs">
-									Current Plan
-								</Badge>
-							)}
-						</Stack>
-					</Card>
-
-					{/* PRO Plan */}
-					<Card
-						withBorder
-						p="lg"
-						bg={isPro ? "var(--mantine-color-violet-light)" : undefined}
-					>
-						<Stack gap="sm">
-							<Group justify="space-between">
-								<Group gap={4}>
-									<IconCrown size={16} color="var(--mantine-color-violet-6)" />
-									<Text fw={600}>PRO</Text>
-								</Group>
-								<Group gap={4} align="baseline">
-									<Text fw={700} size="xl">
-										$9
-									</Text>
-									<Text size="sm" c="dimmed">
-										/month
-									</Text>
-								</Group>
-							</Group>
-							<List
-								spacing="xs"
-								size="sm"
-								icon={
-									<ThemeIcon size={18} radius="xl" color="violet">
-										<IconCheck size={12} />
-									</ThemeIcon>
-								}
-							>
-								{FEATURES.pro.map((feature) => (
-									<List.Item key={feature}>{feature}</List.Item>
-								))}
-							</List>
-							{isPro && (
-								<Badge color="violet" variant="light" mt="xs">
-									Current Plan
-								</Badge>
-							)}
-						</Stack>
-					</Card>
-				</Group>
+				<PricingCards
+					currentTier={subscription?.tier as "FREE" | "PRO" | undefined}
+					showActions={false}
+				/>
 			</Paper>
 
 			{/* Actions */}
