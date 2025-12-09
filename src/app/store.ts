@@ -14,13 +14,14 @@ import {
 import storage from "redux-persist/lib/storage";
 import authReducer from "@/features/auth/auth.slice";
 import themeReducer from "@/features/theme/theme.slice";
-import { baseApi } from "./api/base.api";
+import { baseApi, publicApi } from "./api/base.api";
 
 /**
  * Root reducer combining all slices
  */
 const rootReducer = combineReducers({
 	[baseApi.reducerPath]: baseApi.reducer,
+	[publicApi.reducerPath]: publicApi.reducer,
 	auth: authReducer,
 	theme: themeReducer,
 });
@@ -40,7 +41,7 @@ const persistConfig: PersistConfig<RootReducerState> = {
 	// Only persist these slices
 	whitelist: ["theme"],
 	// Never persist these (RTK Query handles its own caching)
-	blacklist: [baseApi.reducerPath],
+	blacklist: [baseApi.reducerPath, publicApi.reducerPath],
 };
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
@@ -67,7 +68,9 @@ export const createStore = (
 		reducer: persistedReducer,
 		preloadedState,
 		middleware: (getDefaultMiddleware) =>
-			getDefaultMiddleware(middlewareConfig).concat(baseApi.middleware),
+			getDefaultMiddleware(middlewareConfig)
+				.concat(baseApi.middleware)
+				.concat(publicApi.middleware),
 		devTools: import.meta.env.DEV,
 	});
 };

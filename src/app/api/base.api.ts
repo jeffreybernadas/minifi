@@ -10,6 +10,15 @@ import { keycloak } from "@/features/auth/keycloak";
 import { clearAuth } from "@/features/auth";
 
 /**
+ * Response handler to extract 'data' field from backend wrapper
+ */
+const responseHandler = async (response: Response) => {
+	const json = await response.json();
+	// Return just the data field, not the wrapper
+	return json.data ?? json;
+};
+
+/**
  * Base query with authentication header injection
  * Backend wraps responses in: { success, statusCode, data, ... }
  * We need to extract the 'data' field
@@ -23,12 +32,16 @@ const baseQuery = fetchBaseQuery({
 		}
 		return headers;
 	},
-	// Extract the 'data' field from backend response
-	responseHandler: async (response) => {
-		const json = await response.json();
-		// Return just the data field, not the wrapper
-		return json.data ?? json;
-	},
+	responseHandler,
+});
+
+/**
+ * Public base query - no auth headers, no re-auth on 403
+ * Used for public endpoints like redirect where 403 is a business error, not auth error
+ */
+export const publicBaseQuery = fetchBaseQuery({
+	baseUrl: `${VITE_API_BASE_URL}api/v1`,
+	responseHandler,
 });
 
 /**
@@ -106,5 +119,16 @@ export const baseApi = createApi({
 		"AdminUser",
 		"AdminLink",
 	],
+	endpoints: () => ({}),
+});
+
+/**
+ * Public API slice - for endpoints that don't require auth
+ * Uses publicBaseQuery which doesn't trigger re-auth on 403
+ * (403 on public endpoints means business logic error, not auth error)
+ */
+export const publicApi = createApi({
+	reducerPath: "publicApi",
+	baseQuery: publicBaseQuery,
 	endpoints: () => ({}),
 });
