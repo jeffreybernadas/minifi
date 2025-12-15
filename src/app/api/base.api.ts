@@ -11,10 +11,16 @@ import { clearAuth } from "@/features/auth";
 
 /**
  * Response handler to extract 'data' field from backend wrapper
+ * For paginated responses (has meta), returns { data, meta }
+ * For non-paginated responses, returns just the data
  */
 const responseHandler = async (response: Response) => {
 	const json = await response.json();
-	// Return just the data field, not the wrapper
+	// For paginated responses, preserve both data and meta
+	if (json.data && json.meta) {
+		return { data: json.data, meta: json.meta };
+	}
+	// For non-paginated responses, return just the data
 	return json.data ?? json;
 };
 

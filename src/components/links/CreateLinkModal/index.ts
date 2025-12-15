@@ -1,3 +1,2 @@
-export { CreateGuestLinkForm } from "./CreateGuestLinkForm/CreateGuestLinkForm";
 export { CreateLinkModal } from "./CreateLinkModal";
 export type { CreateLinkModalProps } from "./CreateLinkModal";

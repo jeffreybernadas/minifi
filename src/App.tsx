@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import "@mantine/core/styles.css";
 import "@mantine/nprogress/styles.css";
 import "@mantine/notifications/styles.css";
+import "@mantine/dates/styles.css";
 import { Center, Loader, MantineProvider } from "@mantine/core";
 import { RouterProvider } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "@/app/hooks";

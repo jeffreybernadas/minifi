@@ -90,7 +90,7 @@ const STATS = [
 ];
 
 export default function LandingPage() {
-	const { isAuthenticated } = useAuth();
+	const { isAuthenticated, isInitialized } = useAuth();
 	const navigate = useNavigate();
 
 	// Redirect authenticated users to dashboard
@@ -103,6 +103,12 @@ export default function LandingPage() {
 	const handleSignUp = () => {
 		keycloak.login();
 	};
+
+	// Don't render landing page content if not initialized or if authenticated
+	// This prevents flash of landing page before redirect
+	if (!isInitialized || isAuthenticated) {
+		return null;
+	}
 
 	return (
 		<Stack gap={80}>
