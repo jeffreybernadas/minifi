@@ -13,9 +13,9 @@ import {
 	IconChartBar,
 	IconDotsVertical,
 	IconExternalLink,
+	IconEye,
 	IconLock,
 	IconPencil,
-	IconQrcode,
 	IconRefresh,
 	IconTrash,
 } from "@tabler/icons-react";
@@ -38,12 +38,16 @@ const formatDate = (date: string) => {
 
 export interface LinkColumnsOptions {
 	onNavigate: (path: string) => void;
+	onEdit: (link: LinkType) => void;
+	onRescan: (link: LinkType) => void;
 	onArchive: (link: LinkType) => void;
 	onDelete: (link: LinkType) => void;
 }
 
 export const getLinkColumns = ({
 	onNavigate,
+	onEdit,
+	onRescan,
 	onArchive,
 	onDelete,
 }: LinkColumnsOptions): Column<LinkType>[] => [
@@ -124,9 +128,19 @@ export const getLinkColumns = ({
 	{
 		key: "actions",
 		header: "Actions",
-		width: 100,
+		width: 140,
 		render: (link) => (
 			<Group gap={4}>
+				<Tooltip label="View Details">
+					<ActionIcon
+						variant="subtle"
+						color="gray"
+						onClick={() => onNavigate(`/dashboard/links/${link.id}`)}
+					>
+						<IconEye size={16} />
+					</ActionIcon>
+				</Tooltip>
+
 				<Tooltip label="View Analytics">
 					<ActionIcon
 						variant="subtle"
@@ -146,20 +160,16 @@ export const getLinkColumns = ({
 					<Menu.Dropdown>
 						<Menu.Item
 							leftSection={<IconPencil size={14} />}
-							onClick={() => onNavigate(`/dashboard/links/${link.id}`)}
+							onClick={() => onEdit(link)}
 						>
 							Edit
 						</Menu.Item>
 						<Menu.Item
-							leftSection={<IconQrcode size={14} />}
-							onClick={() => onNavigate(`/dashboard/links/${link.id}`)}
+							leftSection={<IconRefresh size={14} />}
+							onClick={() => onRescan(link)}
 						>
-							QR Code
-						</Menu.Item>
-						<Menu.Item leftSection={<IconRefresh size={14} />}>
 							Rescan
 						</Menu.Item>
-						<Menu.Divider />
 						<Menu.Item
 							leftSection={
 								link.isArchived ? (
@@ -172,6 +182,7 @@ export const getLinkColumns = ({
 						>
 							{link.isArchived ? "Unarchive" : "Archive"}
 						</Menu.Item>
+						<Menu.Divider />
 						<Menu.Item
 							leftSection={<IconTrash size={14} />}
 							color="red"

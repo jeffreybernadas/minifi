@@ -29,12 +29,22 @@ export function StatsCard({
 }: StatsCardProps) {
 	return (
 		<Paper withBorder p="md" radius="md">
-			<Group justify="space-between" align="flex-start">
-				<Stack gap={4}>
+			<Group justify="space-between" align="flex-start" wrap="nowrap">
+				<Stack gap={4} style={{ overflow: "hidden" }}>
 					<Text size="xs" c="dimmed" tt="uppercase" fw={600}>
 						{title}
 					</Text>
-					<Text size="xl" fw={700}>
+					<Text
+						size="lg"
+						fw={700}
+						style={{
+							lineHeight: 1.2,
+							whiteSpace: "nowrap",
+							overflow: "hidden",
+							textOverflow: "ellipsis",
+						}}
+						title={String(value)}
+					>
 						{loading ? "—" : value}
 					</Text>
 					{description && (
@@ -44,8 +54,14 @@ export function StatsCard({
 					)}
 				</Stack>
 				{Icon && (
-					<ThemeIcon size={40} radius="md" variant="light" color={iconColor}>
-						<Icon size={22} />
+					<ThemeIcon
+						size={36}
+						radius="md"
+						variant="light"
+						color={iconColor}
+						style={{ flexShrink: 0 }}
+					>
+						<Icon size={20} />
 					</ThemeIcon>
 				)}
 			</Group>

@@ -1,5 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
+	Alert,
 	Button,
 	Checkbox,
 	Group,
@@ -16,24 +17,22 @@ import {
 import { DateTimePicker } from "@mantine/dates";
 import { notifications } from "@mantine/notifications";
 import {
+	IconAlertTriangle,
 	IconCalendar,
 	IconCrown,
 	IconLink,
 	IconLock,
 	IconSettings,
 } from "@tabler/icons-react";
+import { useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
-import { useCreateLinkMutation } from "@/app/api/links.api";
+import { useUpdateLinkMutation } from "@/app/api/links.api";
 import { useAuth } from "@/hooks";
+import type { Link } from "@/types";
 import { getErrorMessage } from "@/types";
 
-// Form schema - aligned with backend CreateLinkDto validation
-const createLinkSchema = z.object({
-	originalUrl: z
-		.string()
-		.min(1, "Destination URL is required")
-		.url("Please enter a valid URL"),
+const editLinkSchema = z.object({
 	title: z.string().max(100, "Title must be 100 characters or less").optional(),
 	description: z
 		.string()
@@ -54,6 +53,7 @@ const createLinkSchema = z.object({
 		.min(6, "Password must be at least 6 characters")
 		.optional()
 		.or(z.literal("")),
+	removePassword: z.boolean().optional(),
 	scheduledAt: z.date().nullable().optional(),
 	expiresAt: z.date().nullable().optional(),
 	clickLimit: z
@@ -68,34 +68,40 @@ const createLinkSchema = z.object({
 		.optional(),
 });
 
-type CreateLinkFormValues = z.infer<typeof createLinkSchema>;
+type EditLinkFormValues = z.infer<typeof editLinkSchema>;
 
-export interface CreateLinkModalProps {
+export interface EditLinkModalProps {
+	link: Link | null;
 	opened: boolean;
 	onClose: () => void;
+	onSuccess?: () => void;
 }
 
-/**
- * Modal for creating new shortened links
- */
-export function CreateLinkModal({ opened, onClose }: CreateLinkModalProps) {
+export function EditLinkModal({
+	link,
+	opened,
+	onClose,
+	onSuccess,
+}: EditLinkModalProps) {
 	const { isPro } = useAuth();
-	const [createLink, { isLoading }] = useCreateLinkMutation();
+	const [updateLink, { isLoading }] = useUpdateLinkMutation();
 
 	const {
 		register,
 		control,
 		handleSubmit,
 		reset,
-		formState: { errors },
-	} = useForm<CreateLinkFormValues>({
-		resolver: zodResolver(createLinkSchema),
+		watch,
+		setValue,
+		formState: { errors, dirtyFields },
+	} = useForm<EditLinkFormValues>({
+		resolver: zodResolver(editLinkSchema),
 		defaultValues: {
-			originalUrl: "",
 			title: "",
 			description: "",
 			customAlias: "",
 			password: "",
+			removePassword: false,
 			scheduledAt: null,
 			expiresAt: null,
 			clickLimit: null,
@@ -104,36 +110,83 @@ export function CreateLinkModal({ opened, onClose }: CreateLinkModalProps) {
 		},
 	});
 
+	const removePassword = watch("removePassword");
+	const customAlias = watch("customAlias");
+	const isAliasChanging =
+		customAlias !== undefined &&
+		customAlias !== "" &&
+		customAlias !== (link?.customAlias ?? "");
+
+	useEffect(() => {
+		if (link && opened) {
+			reset({
+				title: link.title ?? "",
+				description: link.description ?? "",
+				customAlias: link.customAlias ?? "",
+				password: "",
+				removePassword: false,
+				scheduledAt: link.scheduledAt ? new Date(link.scheduledAt) : null,
+				expiresAt: link.expiresAt ? new Date(link.expiresAt) : null,
+				clickLimit: link.clickLimit ?? null,
+				isOneTime: link.isOneTime ?? false,
+				notes: link.notes ?? "",
+			});
+		}
+	}, [link, opened, reset]);
+
 	const handleClose = () => {
 		reset();
 		onClose();
 	};
 
 	const onSubmit = handleSubmit(async (values) => {
-		try {
-			// Clean up empty strings to undefined
-			const payload = {
-				originalUrl: values.originalUrl,
-				title: values.title || undefined,
-				description: values.description || undefined,
-				customAlias: values.customAlias || undefined,
-				password: values.password || undefined,
-				scheduledAt: values.scheduledAt?.toISOString(),
-				expiresAt: values.expiresAt?.toISOString(),
-				clickLimit: values.clickLimit ?? undefined,
-				isOneTime: values.isOneTime || undefined,
-				notes: values.notes || undefined,
-			};
+		if (!link) return;
 
-			await createLink(payload).unwrap();
+		try {
+			const payload: Record<string, unknown> = {};
+
+			if (dirtyFields.title) payload.title = values.title || null;
+			if (dirtyFields.description)
+				payload.description = values.description || null;
+			if (dirtyFields.customAlias && isPro)
+				payload.customAlias = values.customAlias || null;
+			if (dirtyFields.notes) payload.notes = values.notes || null;
+			if (dirtyFields.clickLimit)
+				payload.clickLimit = values.clickLimit ?? null;
+			if (dirtyFields.isOneTime) payload.isOneTime = values.isOneTime;
+
+			if (values.removePassword) {
+				payload.password = null;
+			} else if (dirtyFields.password && values.password) {
+				payload.password = values.password;
+			}
+
+			if (dirtyFields.scheduledAt) {
+				payload.scheduledAt = values.scheduledAt?.toISOString() ?? null;
+			}
+			if (dirtyFields.expiresAt) {
+				payload.expiresAt = values.expiresAt?.toISOString() ?? null;
+			}
+
+			if (Object.keys(payload).length === 0) {
+				notifications.show({
+					title: "No changes",
+					message: "No fields were modified",
+					color: "yellow",
+				});
+				return;
+			}
+
+			await updateLink({ id: link.id, data: payload }).unwrap();
 
 			notifications.show({
-				title: "Link created",
-				message: "Your short link is ready to use",
+				title: "Link updated",
+				message: "Your changes have been saved",
 				color: "green",
 			});
 
 			handleClose();
+			onSuccess?.();
 		} catch (err) {
 			notifications.show({
 				title: "Error",
@@ -143,15 +196,39 @@ export function CreateLinkModal({ opened, onClose }: CreateLinkModalProps) {
 		}
 	});
 
+	if (!link) return null;
+
 	return (
 		<Modal
 			opened={opened}
 			onClose={handleClose}
-			title="Create Short Link"
+			title="Edit Link"
 			size="lg"
 			radius="md"
 		>
 			<form onSubmit={onSubmit}>
+				<Stack gap="md" mb="md">
+					<TextInput
+						label="Destination URL"
+						value={link.originalUrl}
+						disabled
+						styles={{ input: { cursor: "not-allowed" } }}
+					/>
+					<TextInput
+						label="Short Code"
+						value={link.shortCode}
+						disabled
+						styles={{ input: { cursor: "not-allowed" } }}
+					/>
+				</Stack>
+
+				{isAliasChanging && link.qrCodeUrl && (
+					<Alert icon={<IconAlertTriangle size={16} />} color="yellow" mb="md">
+						Changing the custom alias will invalidate the existing QR code. You
+						will need to generate a new one.
+					</Alert>
+				)}
+
 				<Tabs defaultValue="basic">
 					<Tabs.List mb="md">
 						<Tabs.Tab value="basic" leftSection={<IconLink size={16} />}>
@@ -168,17 +245,8 @@ export function CreateLinkModal({ opened, onClose }: CreateLinkModalProps) {
 						</Tabs.Tab>
 					</Tabs.List>
 
-					{/* Basic Tab */}
 					<Tabs.Panel value="basic">
 						<Stack gap="md">
-							<TextInput
-								label="Destination URL"
-								placeholder="https://example.com/very-long-url"
-								required
-								error={errors.originalUrl?.message}
-								{...register("originalUrl")}
-							/>
-
 							<TextInput
 								label="Title"
 								placeholder="My awesome link"
@@ -218,7 +286,7 @@ export function CreateLinkModal({ opened, onClose }: CreateLinkModalProps) {
 									description={
 										isPro
 											? "Create a memorable custom URL"
-											: "Upgrade to PRO to create custom aliases"
+											: "Upgrade to PRO to change custom aliases"
 									}
 									disabled={!isPro}
 									error={errors.customAlias?.message}
@@ -231,16 +299,41 @@ export function CreateLinkModal({ opened, onClose }: CreateLinkModalProps) {
 						</Stack>
 					</Tabs.Panel>
 
-					{/* Security Tab */}
 					<Tabs.Panel value="security">
 						<Stack gap="md">
-							<PasswordInput
-								label="Password Protection"
-								placeholder="Enter password (optional)"
-								description="Require a password to access this link"
-								error={errors.password?.message}
-								{...register("password")}
-							/>
+							{link.hasPassword && (
+								<Checkbox
+									label="Remove password protection"
+									description="Uncheck to keep or update the password"
+									checked={removePassword}
+									onChange={(e) => {
+										setValue("removePassword", e.currentTarget.checked);
+										if (e.currentTarget.checked) {
+											setValue("password", "");
+										}
+									}}
+								/>
+							)}
+
+							{!removePassword && (
+								<PasswordInput
+									label={
+										link.hasPassword ? "New Password" : "Password Protection"
+									}
+									placeholder={
+										link.hasPassword
+											? "Enter new password (leave blank to keep current)"
+											: "Enter password (optional)"
+									}
+									description={
+										link.hasPassword
+											? "Leave blank to keep the current password"
+											: "Require a password to access this link"
+									}
+									error={errors.password?.message}
+									{...register("password")}
+								/>
+							)}
 
 							<Text size="sm" c="dimmed">
 								Password-protected links will show a password form before
@@ -249,7 +342,6 @@ export function CreateLinkModal({ opened, onClose }: CreateLinkModalProps) {
 						</Stack>
 					</Tabs.Panel>
 
-					{/* Schedule Tab */}
 					<Tabs.Panel value="schedule">
 						<Stack gap="md">
 							<Controller
@@ -292,7 +384,6 @@ export function CreateLinkModal({ opened, onClose }: CreateLinkModalProps) {
 						</Stack>
 					</Tabs.Panel>
 
-					{/* Advanced Tab */}
 					<Tabs.Panel value="advanced">
 						<Stack gap="md">
 							<Controller
@@ -344,7 +435,7 @@ export function CreateLinkModal({ opened, onClose }: CreateLinkModalProps) {
 						Cancel
 					</Button>
 					<Button type="submit" loading={isLoading}>
-						Create Link
+						Save Changes
 					</Button>
 				</Group>
 			</form>

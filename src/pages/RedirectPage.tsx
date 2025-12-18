@@ -398,7 +398,7 @@ export default function RedirectPage() {
 										Risk Score:
 									</Text>
 									<Tooltip
-										label="Higher score = higher risk. 0 is safest, 100 is most dangerous."
+										label="Higher score = safer. 0 is dangerous, 1.0 is most safe."
 										position="top"
 										withArrow
 									>
@@ -407,10 +407,7 @@ export default function RedirectPage() {
 											variant="light"
 											style={{ cursor: "help" }}
 										>
-											{pendingWarning.scanScore <= 1
-												? Math.round(pendingWarning.scanScore * 100)
-												: Math.round(pendingWarning.scanScore)}
-											/100
+											{pendingWarning.scanScore.toFixed(2)}
 										</Badge>
 									</Tooltip>
 								</Group>

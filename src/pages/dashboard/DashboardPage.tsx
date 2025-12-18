@@ -24,10 +24,11 @@ import {
 	useArchiveLinkMutation,
 	useDeleteLinkMutation,
 	useGetLinksQuery,
+	useRescanLinkMutation,
 	useUnarchiveLinkMutation,
 } from "@/app/api/links.api";
 import { getLinkColumns } from "@/columns";
-import { CreateLinkModal } from "@/components/links";
+import { CreateLinkModal, EditLinkModal } from "@/components/links";
 import { DataTable, StatsCard } from "@/components/ui";
 import type { LinkStatus, Link as LinkType } from "@/types";
 import { getErrorMessage } from "@/types";
@@ -41,6 +42,9 @@ export default function DashboardPage() {
 		createModalOpened,
 		{ open: openCreateModal, close: closeCreateModal },
 	] = useDisclosure(false);
+	const [editModalOpened, { open: openEditModal, close: closeEditModal }] =
+		useDisclosure(false);
+	const [editingLink, setEditingLink] = useState<LinkType | null>(null);
 
 	// Filter state
 	const [search, setSearch] = useState("");
@@ -63,6 +67,7 @@ export default function DashboardPage() {
 	const [archiveLink] = useArchiveLinkMutation();
 	const [unarchiveLink] = useUnarchiveLinkMutation();
 	const [deleteLink] = useDeleteLinkMutation();
+	const [rescanLink] = useRescanLinkMutation();
 
 	// Stats calculations
 	const links = data?.data ?? [];
@@ -136,6 +141,39 @@ export default function DashboardPage() {
 		[deleteLink],
 	);
 
+	const handleRescan = useCallback(
+		async (link: LinkType) => {
+			try {
+				await rescanLink(link.id).unwrap();
+				notifications.show({
+					title: "Scan requested",
+					message: "URL will be rescanned shortly",
+					color: "blue",
+				});
+			} catch (err) {
+				notifications.show({
+					title: "Error",
+					message: getErrorMessage(err),
+					color: "red",
+				});
+			}
+		},
+		[rescanLink],
+	);
+
+	const handleEdit = useCallback(
+		(link: LinkType) => {
+			setEditingLink(link);
+			openEditModal();
+		},
+		[openEditModal],
+	);
+
+	const handleCloseEditModal = useCallback(() => {
+		closeEditModal();
+		setEditingLink(null);
+	}, [closeEditModal]);
+
 	// Column definitions (extracted to separate file)
 	const columns = useMemo(
 		() =>
@@ -143,12 +181,16 @@ export default function DashboardPage() {
 				onNavigate: (path) => {
 					navigate(path);
 				},
+				onEdit: handleEdit,
+				onRescan: (link) => {
+					void handleRescan(link);
+				},
 				onArchive: (link) => {
 					void handleArchive(link);
 				},
 				onDelete: handleDelete,
 			}),
-		[navigate, handleArchive, handleDelete],
+		[navigate, handleEdit, handleRescan, handleArchive, handleDelete],
 	);
 
 	// Stats cards configuration
@@ -248,6 +290,13 @@ export default function DashboardPage() {
 
 			{/* Create Link Modal */}
 			<CreateLinkModal opened={createModalOpened} onClose={closeCreateModal} />
+
+			{/* Edit Link Modal */}
+			<EditLinkModal
+				link={editingLink}
+				opened={editModalOpened}
+				onClose={handleCloseEditModal}
+			/>
 		</Stack>
 	);
 }
