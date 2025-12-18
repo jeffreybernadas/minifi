@@ -1,34 +1,34 @@
+import { zodResolver } from "@hookform/resolvers/zod";
 import {
-	Stack,
-	Title,
-	Paper,
-	Avatar,
-	Group,
-	Text,
-	Button,
-	TextInput,
-	Textarea,
-	FileButton,
-	LoadingOverlay,
 	Anchor,
+	Avatar,
+	Button,
+	FileButton,
+	Group,
+	LoadingOverlay,
+	Paper,
+	Stack,
+	Text,
+	Textarea,
+	TextInput,
+	Title,
 } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
-import { IconUpload, IconExternalLink } from "@tabler/icons-react";
-import { useState, useEffect } from "react";
-import { useForm, Controller } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { IconExternalLink, IconUpload } from "@tabler/icons-react";
+import { useEffect, useState } from "react";
+import { Controller, useForm } from "react-hook-form";
+import { useUploadFileMutation } from "@/app/api/file.api";
 import {
 	useGetUserProfileQuery,
 	useUpdateUserPreferencesMutation,
 } from "@/app/api/user.api";
-import { useUploadFileMutation } from "@/app/api/file.api";
-import { profileSchema, type ProfileFormData } from "@/schemas/profile.schema";
-import {
-	VITE_KEYCLOAK_URL,
-	VITE_KEYCLOAK_REALM,
-} from "@/constants/env.constant";
-import { getErrorMessage } from "@/types/api.types";
 import { UserBadges } from "@/components/ui";
+import {
+	VITE_KEYCLOAK_REALM,
+	VITE_KEYCLOAK_URL,
+} from "@/constants/env.constant";
+import { type ProfileFormData, profileSchema } from "@/schemas/profile.schema";
+import { getErrorMessage } from "@/types/api.types";
 
 export default function ProfilePage() {
 	const {

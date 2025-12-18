@@ -9,8 +9,8 @@ import {
 	Stack,
 	Tabs,
 	Text,
-	TextInput,
 	Textarea,
+	TextInput,
 	Tooltip,
 } from "@mantine/core";
 import { DateTimePicker } from "@mantine/dates";
@@ -196,7 +196,10 @@ export function CreateLinkModal({ opened, onClose }: CreateLinkModalProps) {
 										<Group gap={4}>
 											<span>Custom Alias</span>
 											{!isPro && (
-												<IconCrown size={14} color="var(--mantine-color-violet-5)" />
+												<IconCrown
+													size={14}
+													color="var(--mantine-color-violet-5)"
+												/>
 											)}
 										</Group>
 									}
@@ -210,9 +213,7 @@ export function CreateLinkModal({ opened, onClose }: CreateLinkModalProps) {
 									error={errors.customAlias?.message}
 									{...register("customAlias")}
 									styles={
-										!isPro
-											? { input: { cursor: "not-allowed" } }
-											: undefined
+										!isPro ? { input: { cursor: "not-allowed" } } : undefined
 									}
 								/>
 							</Tooltip>
@@ -331,4 +332,3 @@ export function CreateLinkModal({ opened, onClose }: CreateLinkModalProps) {
 		</Modal>
 	);
 }
-

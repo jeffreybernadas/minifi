@@ -7,8 +7,8 @@ import {
 } from "@tabler/icons-react";
 import { Link } from "react-router-dom";
 import { useGetUserProfileQuery } from "@/app/api/user.api";
-import { keycloak } from "@/features/auth";
 import { UserBadges } from "@/components/ui";
+import { keycloak } from "@/features/auth";
 import classes from "./UserButton.module.css";
 
 export function UserButton() {

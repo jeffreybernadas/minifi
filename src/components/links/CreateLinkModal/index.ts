@@ -1,2 +1,2 @@
-export { CreateLinkModal } from "./CreateLinkModal";
 export type { CreateLinkModalProps } from "./CreateLinkModal";
+export { CreateLinkModal } from "./CreateLinkModal";

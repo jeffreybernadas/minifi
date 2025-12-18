@@ -33,11 +33,12 @@ import { z } from "zod";
 // Height that fits within viewport without scroll
 // Accounts for: header (60px), container padding (32px), footer (~60px)
 const PAGE_HEIGHT = "calc(100dvh - 160px)";
+
 import {
-	useGetRedirectInfoQuery,
-	useVerifyPasswordMutation,
 	type RedirectWarning,
 	type ScanStatus,
+	useGetRedirectInfoQuery,
+	useVerifyPasswordMutation,
 } from "@/app/api/redirect.api";
 import { getRandomLoadingQuote } from "@/constants/loading-quotes.constant";
 import { getErrorMessage } from "@/types";
@@ -420,9 +421,7 @@ export default function RedirectPage() {
 								Go Back
 							</Button>
 							<Button
-								color={
-									pendingWarning.status === "MALICIOUS" ? "red" : "yellow"
-								}
+								color={pendingWarning.status === "MALICIOUS" ? "red" : "yellow"}
 								onClick={handleProceed}
 								rightSection={<IconExternalLink size={16} />}
 							>

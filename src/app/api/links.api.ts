@@ -1,5 +1,4 @@
 import { VITE_APP_URL } from "@/constants/env.constant";
-import { baseApi } from "./base.api";
 import type {
 	AnalyticsFilterDto,
 	CreateGuestLinkDto,
@@ -12,6 +11,7 @@ import type {
 	QrCodeResponse,
 	UpdateLinkDto,
 } from "@/types";
+import { baseApi } from "./base.api";
 
 /**
  * Helper to build short URL for display
@@ -65,24 +65,26 @@ export const linksApi = baseApi.injectEndpoints({
 		/**
 		 * Get user's links with pagination and filters
 		 */
-		getLinks: builder.query<PaginatedResponse<Link>, LinkFilterDto | void>({
-			query: (filters) => ({
-				url: "/links",
-				method: "GET",
-				params: filters || {},
-			}),
-			transformResponse: (response: PaginatedResponse<Link>) => ({
-				...response,
-				data: response.data.map(transformLink),
-			}),
-			providesTags: (result) =>
-				result
-					? [
-							...result.data.map(({ id }) => ({ type: "Link" as const, id })),
-							{ type: "Link", id: "LIST" },
-						]
-					: [{ type: "Link", id: "LIST" }],
-		}),
+		getLinks: builder.query<PaginatedResponse<Link>, LinkFilterDto | undefined>(
+			{
+				query: (filters) => ({
+					url: "/links",
+					method: "GET",
+					params: filters ?? {},
+				}),
+				transformResponse: (response: PaginatedResponse<Link>) => ({
+					...response,
+					data: response.data.map(transformLink),
+				}),
+				providesTags: (result) =>
+					result
+						? [
+								...result.data.map(({ id }) => ({ type: "Link" as const, id })),
+								{ type: "Link", id: "LIST" },
+							]
+						: [{ type: "Link", id: "LIST" }],
+			},
+		),
 
 		/**
 		 * Get single link by ID

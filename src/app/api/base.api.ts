@@ -6,8 +6,8 @@ import {
 	fetchBaseQuery,
 } from "@reduxjs/toolkit/query/react";
 import { VITE_API_BASE_URL } from "@/constants/env.constant";
-import { keycloak } from "@/features/auth/keycloak";
 import { clearAuth } from "@/features/auth";
+import { keycloak } from "@/features/auth/keycloak";
 
 /**
  * Response handler to extract 'data' field from backend wrapper

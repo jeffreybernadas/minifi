@@ -4,6 +4,8 @@ import "@mantine/nprogress/styles.css";
 import "@mantine/notifications/styles.css";
 import "@mantine/dates/styles.css";
 import { Center, Loader, MantineProvider } from "@mantine/core";
+import { ModalsProvider } from "@mantine/modals";
+import { Notifications } from "@mantine/notifications";
 import { RouterProvider } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "@/app/hooks";
 import {
@@ -16,8 +18,6 @@ import {
 } from "@/features/auth";
 import { NavigationProgress, router } from "@/router";
 import { theme } from "@/styles/theme";
-import { Notifications } from "@mantine/notifications";
-import { ModalsProvider } from "@mantine/modals";
 
 function App() {
 	const dispatch = useAppDispatch();

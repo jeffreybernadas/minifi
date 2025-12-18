@@ -5,8 +5,8 @@ import {
 	IconPresentationAnalytics,
 	IconTags,
 } from "@tabler/icons-react";
-import { useAuth } from "@/hooks";
 import { LinksGroup, Logo, UserButton } from "@/components/ui";
+import { useAuth } from "@/hooks";
 import packageJson from "../../../../package.json";
 import classes from "./Sidebar.module.css";
 

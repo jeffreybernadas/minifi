@@ -26,10 +26,10 @@ import {
 } from "@tabler/icons-react";
 import { useState } from "react";
 import {
-	useGetSubscriptionQuery,
+	useCancelSubscriptionMutation,
 	useCreateCheckoutMutation,
 	useCreatePortalMutation,
-	useCancelSubscriptionMutation,
+	useGetSubscriptionQuery,
 } from "@/app/api/subscription.api";
 import {
 	useGetUserProfileQuery,
@@ -90,7 +90,7 @@ function SubscriptionTab() {
 	const handleUpgrade = async () => {
 		try {
 			const result = await createCheckout().unwrap();
-			window.location.href = result.url;
+			globalThis.location.href = result.url;
 		} catch (err) {
 			notifications.show({
 				title: "Error",
@@ -103,7 +103,7 @@ function SubscriptionTab() {
 	const handleManageBilling = async () => {
 		try {
 			const result = await createPortal().unwrap();
-			window.location.href = result.url;
+			globalThis.location.href = result.url;
 		} catch (err) {
 			notifications.show({
 				title: "Error",
@@ -141,7 +141,9 @@ function SubscriptionTab() {
 			),
 			labels: { confirm: "Cancel Subscription", cancel: "Keep PRO" },
 			confirmProps: { color: "red" },
-			onConfirm: handleCancel,
+			onConfirm: () => {
+				void handleCancel();
+			},
 		});
 	};
 
@@ -254,33 +256,13 @@ function SubscriptionTab() {
 				<Text fw={500} mb="md">
 					Plan Features
 				</Text>
-				<PricingCards
-					currentTier={subscription?.tier as "FREE" | "PRO" | undefined}
-					showActions={false}
-				/>
+				<PricingCards currentTier={subscription?.tier} showActions={false} />
 			</Paper>
 
 			{/* Actions */}
 			<Paper shadow="sm" p="xl" withBorder>
 				<Group justify="space-between">
-					{!isPro ? (
-						<>
-							<Box>
-								<Text fw={500}>Upgrade to PRO</Text>
-								<Text size="sm" c="dimmed">
-									Unlock unlimited links and advanced features
-								</Text>
-							</Box>
-							<Button
-								color="violet"
-								leftSection={<IconCrown size={16} />}
-								onClick={handleUpgrade}
-								loading={isCreatingCheckout}
-							>
-								Upgrade Now
-							</Button>
-						</>
-					) : (
+					{isPro ? (
 						<>
 							<Box>
 								<Text fw={500}>Manage Subscription</Text>
@@ -307,6 +289,23 @@ function SubscriptionTab() {
 									</Button>
 								)}
 							</Group>
+						</>
+					) : (
+						<>
+							<Box>
+								<Text fw={500}>Upgrade to PRO</Text>
+								<Text size="sm" c="dimmed">
+									Unlock unlimited links and advanced features
+								</Text>
+							</Box>
+							<Button
+								color="violet"
+								leftSection={<IconCrown size={16} />}
+								onClick={handleUpgrade}
+								loading={isCreatingCheckout}
+							>
+								Upgrade Now
+							</Button>
 						</>
 					)}
 				</Group>

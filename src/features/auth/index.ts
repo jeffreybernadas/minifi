@@ -1,3 +1,5 @@
+// Re-export auth hook from centralized location
+export { type UseAuthReturn, useAuth } from "@/hooks";
 export {
 	type AuthState,
 	type AuthUser,
@@ -8,6 +10,3 @@ export {
 	setInitialized,
 } from "./auth.slice";
 export { getUserFromToken, keycloak, keycloakInitOptions } from "./keycloak";
-
-// Re-export auth hook from centralized location
-export { useAuth, type UseAuthReturn } from "@/hooks";

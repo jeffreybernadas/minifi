@@ -1,6 +1,6 @@
 import { Button, Stack, Text, ThemeIcon, Title } from "@mantine/core";
-import { IconPlus } from "@tabler/icons-react";
 import type { TablerIcon } from "@tabler/icons-react";
+import { IconPlus } from "@tabler/icons-react";
 
 export interface EmptyStateProps {
 	/** Icon to display */
@@ -48,4 +48,3 @@ export function EmptyState({
 		</Stack>
 	);
 }
-
