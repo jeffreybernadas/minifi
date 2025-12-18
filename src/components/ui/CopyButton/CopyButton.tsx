@@ -1,7 +1,6 @@
 import { Button, type ButtonProps } from "@mantine/core";
 import { useClipboard } from "@mantine/hooks";
 import { IconCheck, IconCopy } from "@tabler/icons-react";
-import { useState } from "react";
 
 export interface CopyButtonProps extends Omit<ButtonProps, "onClick"> {
 	value: string;
@@ -11,12 +10,10 @@ export interface CopyButtonProps extends Omit<ButtonProps, "onClick"> {
 /**
  * Simple copy-to-clipboard button with optimistic UI feedback.
  */
-export function CopyButton({ value, label, ...props }: CopyButtonProps) {
+export function CopyButton({ value, label, ...props }: Readonly<CopyButtonProps>) {
 	const clipboard = useClipboard({ timeout: 1500 });
-	const [copiedLabel, setCopiedLabel] = useState("");
 
 	const handleCopy = () => {
-		setCopiedLabel(label ?? value);
 		clipboard.copy(value);
 	};
 
@@ -31,7 +28,6 @@ export function CopyButton({ value, label, ...props }: CopyButtonProps) {
 			{...props}
 		>
 			{clipboard.copied ? "Copied!" : (props.children ?? "Copy")}
-			{clipboard.copied && copiedLabel ? ` ${copiedLabel}` : null}
 		</Button>
 	);
 }

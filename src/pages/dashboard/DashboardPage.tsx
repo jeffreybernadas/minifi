@@ -1,73 +1,46 @@
 import {
-	ActionIcon,
-	Anchor,
 	Button,
 	Group,
-	LoadingOverlay,
-	Menu,
-	Pagination,
 	Paper,
 	Select,
 	SimpleGrid,
 	Stack,
-	Table,
 	Text,
 	TextInput,
 	Title,
-	Tooltip,
 } from "@mantine/core";
 import { useDebouncedValue, useDisclosure } from "@mantine/hooks";
 import { modals } from "@mantine/modals";
 import { notifications } from "@mantine/notifications";
 import {
 	IconArchive,
-	IconArchiveOff,
-	IconChartBar,
-	IconClick,
-	IconDotsVertical,
-	IconExternalLink,
 	IconLink,
-	IconLock,
-	IconPencil,
 	IconPlus,
-	IconQrcode,
-	IconRefresh,
 	IconSearch,
-	IconTrash,
 } from "@tabler/icons-react";
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useCallback, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
 	useArchiveLinkMutation,
 	useDeleteLinkMutation,
 	useGetLinksQuery,
 	useUnarchiveLinkMutation,
 } from "@/app/api/links.api";
+import { getLinkColumns } from "@/columns";
 import { CreateLinkModal } from "@/components/links";
-import {
-	CopyButton,
-	EmptyState,
-	LinkStatusBadge,
-	ScanStatusBadge,
-	StatsCard,
-} from "@/components/ui";
-import type { Link as LinkType, LinkStatus } from "@/types";
+import { DataTable, StatsCard } from "@/components/ui";
+import type { LinkStatus, Link as LinkType } from "@/types";
 import { getErrorMessage } from "@/types";
-
-// Status filter options
-const STATUS_OPTIONS = [
-	{ value: "", label: "All Statuses" },
-	{ value: "ACTIVE", label: "Active" },
-	{ value: "SCHEDULED", label: "Scheduled" },
-	{ value: "DISABLED", label: "Disabled" },
-];
+import { getStatsCards, STATUS_OPTIONS } from "./constants";
 
 export default function DashboardPage() {
 	const navigate = useNavigate();
 
 	// Modal state
-	const [createModalOpened, { open: openCreateModal, close: closeCreateModal }] =
-		useDisclosure(false);
+	const [
+		createModalOpened,
+		{ open: openCreateModal, close: closeCreateModal },
+	] = useDisclosure(false);
 
 	// Filter state
 	const [search, setSearch] = useState("");
@@ -99,70 +72,96 @@ export default function DashboardPage() {
 	const totalClicks = links.reduce((sum, l) => sum + l.clickCount, 0);
 
 	// Handlers
-	const handleArchive = async (link: LinkType) => {
-		try {
-			if (link.isArchived) {
-				await unarchiveLink(link.id).unwrap();
-				notifications.show({
-					title: "Link restored",
-					message: "Link has been unarchived",
-					color: "green",
-				});
-			} else {
-				await archiveLink(link.id).unwrap();
-				notifications.show({
-					title: "Link archived",
-					message: "Link has been archived",
-					color: "green",
-				});
-			}
-		} catch (err) {
-			notifications.show({
-				title: "Error",
-				message: getErrorMessage(err),
-				color: "red",
-			});
-		}
-	};
-
-	const handleDelete = (link: LinkType) => {
-		modals.openConfirmModal({
-			title: "Delete Link",
-			children: (
-				<Text size="sm">
-					Are you sure you want to permanently delete this link? This action
-					cannot be undone and all analytics data will be lost.
-				</Text>
-			),
-			labels: { confirm: "Delete", cancel: "Cancel" },
-			confirmProps: { color: "red" },
-			onConfirm: async () => {
-				try {
-					await deleteLink(link.id).unwrap();
+	const handleArchive = useCallback(
+		async (link: LinkType) => {
+			try {
+				if (link.isArchived) {
+					await unarchiveLink(link.id).unwrap();
 					notifications.show({
-						title: "Link deleted",
-						message: "Link has been permanently deleted",
+						title: "Link restored",
+						message: "Link has been unarchived",
 						color: "green",
 					});
-				} catch (err) {
+				} else {
+					await archiveLink(link.id).unwrap();
 					notifications.show({
-						title: "Error",
-						message: getErrorMessage(err),
-						color: "red",
+						title: "Link archived",
+						message: "Link has been archived",
+						color: "green",
 					});
 				}
-			},
-		});
-	};
+			} catch (err) {
+				notifications.show({
+					title: "Error",
+					message: getErrorMessage(err),
+					color: "red",
+				});
+			}
+		},
+		[archiveLink, unarchiveLink],
+	);
 
-	// Format date
-	const formatDate = (date: string) => {
-		return new Date(date).toLocaleDateString("en-US", {
-			month: "short",
-			day: "numeric",
-			year: "numeric",
-		});
-	};
+	const handleDelete = useCallback(
+		(link: LinkType) => {
+			modals.openConfirmModal({
+				title: "Delete Link",
+				children: (
+					<Text size="sm">
+						Are you sure you want to permanently delete this link? This action
+						cannot be undone and all analytics data will be lost.
+					</Text>
+				),
+				labels: { confirm: "Delete", cancel: "Cancel" },
+				confirmProps: { color: "red" },
+				onConfirm: () => {
+					void (async () => {
+						try {
+							await deleteLink(link.id).unwrap();
+							notifications.show({
+								title: "Link deleted",
+								message: "Link has been permanently deleted",
+								color: "green",
+							});
+						} catch (err) {
+							notifications.show({
+								title: "Error",
+								message: getErrorMessage(err),
+								color: "red",
+							});
+						}
+					})();
+				},
+			});
+		},
+		[deleteLink],
+	);
+
+	// Column definitions (extracted to separate file)
+	const columns = useMemo(
+		() =>
+			getLinkColumns({
+				onNavigate: (path) => {
+					navigate(path);
+				},
+				onArchive: (link) => {
+					void handleArchive(link);
+				},
+				onDelete: handleDelete,
+			}),
+		[navigate, handleArchive, handleDelete],
+	);
+
+	// Stats cards configuration
+	const statsCards = useMemo(
+		() =>
+			getStatsCards({
+				totalLinks,
+				activeLinks,
+				totalClicks,
+				pageCount: links.length,
+			}),
+		[totalLinks, activeLinks, totalClicks, links.length],
+	);
 
 	return (
 		<Stack gap="lg">
@@ -176,35 +175,17 @@ export default function DashboardPage() {
 
 			{/* Stats Cards */}
 			<SimpleGrid cols={{ base: 1, sm: 2, md: 4 }}>
-				<StatsCard
-					title="Total Links"
-					value={totalLinks}
-					icon={IconLink}
-					iconColor="blue"
-					loading={isLoading}
-				/>
-				<StatsCard
-					title="Active Links"
-					value={activeLinks}
-					icon={IconChartBar}
-					iconColor="green"
-					loading={isLoading}
-				/>
-				<StatsCard
-					title="Total Clicks"
-					value={totalClicks.toLocaleString()}
-					icon={IconClick}
-					iconColor="violet"
-					loading={isLoading}
-				/>
-				<StatsCard
-					title="This Page"
-					value={links.length}
-					icon={IconLink}
-					iconColor="gray"
-					description={`of ${totalLinks} total`}
-					loading={isLoading}
-				/>
+				{statsCards.map((card) => (
+					<StatsCard
+						key={card.key}
+						title={card.title}
+						value={card.value}
+						icon={card.icon}
+						iconColor={card.iconColor}
+						description={card.description}
+						loading={isLoading}
+					/>
+				))}
 			</SimpleGrid>
 
 			{/* Filters */}
@@ -232,8 +213,8 @@ export default function DashboardPage() {
 						w={150}
 					/>
 					<Button
-						variant={isArchived ? "filled" : "light"}
-						color={isArchived ? "orange" : "gray"}
+						variant={isArchived ? "filled" : "outline"}
+						color={isArchived ? "orange" : "blue"}
 						leftSection={<IconArchive size={16} />}
 						onClick={() => {
 							setIsArchived(!isArchived);
@@ -246,197 +227,24 @@ export default function DashboardPage() {
 			</Paper>
 
 			{/* Links Table */}
-			<Paper withBorder radius="md" pos="relative" mih={200}>
-				<LoadingOverlay visible={isLoading || isFetching} zIndex={10} />
-
-				{isLoading ? null : links.length === 0 ? (
-					<EmptyState
-						icon={isArchived ? IconArchive : IconLink}
-						title={isArchived ? "No archived links" : "No links yet"}
-						description={
-							isArchived
-								? "Links you archive will appear here"
-								: "Create your first short link to get started"
-						}
-						actionLabel={isArchived ? undefined : "Create Link"}
-						onAction={isArchived ? undefined : openCreateModal}
-					/>
-				) : (
-					<>
-						<Table.ScrollContainer minWidth={800}>
-							<Table striped highlightOnHover>
-								<Table.Thead>
-									<Table.Tr>
-										<Table.Th>Link</Table.Th>
-										<Table.Th>Status</Table.Th>
-										<Table.Th>Clicks</Table.Th>
-										<Table.Th>Security</Table.Th>
-										<Table.Th>Created</Table.Th>
-										<Table.Th w={100}>Actions</Table.Th>
-									</Table.Tr>
-								</Table.Thead>
-								<Table.Tbody>
-									{links.map((link) => (
-										<Table.Tr key={link.id}>
-											{/* Link Info */}
-											<Table.Td>
-												<Stack gap={4}>
-													<Group gap="xs">
-														<Anchor
-															component={Link}
-															to={`/dashboard/links/${link.id}`}
-															fw={500}
-															size="sm"
-														>
-															{link.title || link.shortCode}
-														</Anchor>
-														{link.hasPassword && (
-															<Tooltip label="Password protected">
-																<IconLock size={14} color="gray" />
-															</Tooltip>
-														)}
-													</Group>
-													<Group gap="xs">
-														<Text size="xs" c="blue" ff="monospace">
-															{link.shortUrl}
-														</Text>
-														<CopyButton
-															value={link.shortUrl!}
-															size="xs"
-															variant="subtle"
-														>
-															Copy
-														</CopyButton>
-														<ActionIcon
-															component="a"
-															href={link.shortUrl}
-															target="_blank"
-															size="xs"
-															variant="subtle"
-															color="gray"
-														>
-															<IconExternalLink size={12} />
-														</ActionIcon>
-													</Group>
-													<Text size="xs" c="dimmed" lineClamp={1}>
-														{link.originalUrl}
-													</Text>
-												</Stack>
-											</Table.Td>
-
-											{/* Status */}
-											<Table.Td>
-												<LinkStatusBadge status={link.status} />
-											</Table.Td>
-
-											{/* Clicks */}
-											<Table.Td>
-												<Group gap={4}>
-													<Text size="sm" fw={500}>
-														{link.clickCount.toLocaleString()}
-													</Text>
-													<Text size="xs" c="dimmed">
-														({link.uniqueClickCount} unique)
-													</Text>
-												</Group>
-											</Table.Td>
-
-											{/* Security */}
-											<Table.Td>
-												<ScanStatusBadge status={link.scanStatus} />
-											</Table.Td>
-
-											{/* Created */}
-											<Table.Td>
-												<Text size="sm">{formatDate(link.createdAt)}</Text>
-											</Table.Td>
-
-											{/* Actions */}
-											<Table.Td>
-												<Group gap={4}>
-													<Tooltip label="View Analytics">
-														<ActionIcon
-															variant="subtle"
-															color="blue"
-															onClick={() =>
-																navigate(`/dashboard/analytics/${link.id}`)
-															}
-														>
-															<IconChartBar size={16} />
-														</ActionIcon>
-													</Tooltip>
-
-													<Menu position="bottom-end" withArrow>
-														<Menu.Target>
-															<ActionIcon variant="subtle" color="gray">
-																<IconDotsVertical size={16} />
-															</ActionIcon>
-														</Menu.Target>
-														<Menu.Dropdown>
-															<Menu.Item
-																leftSection={<IconPencil size={14} />}
-																onClick={() =>
-																	navigate(`/dashboard/links/${link.id}`)
-																}
-															>
-																Edit
-															</Menu.Item>
-															<Menu.Item
-																leftSection={<IconQrcode size={14} />}
-																onClick={() =>
-																	navigate(`/dashboard/links/${link.id}`)
-																}
-															>
-																QR Code
-															</Menu.Item>
-															<Menu.Item
-																leftSection={<IconRefresh size={14} />}
-															>
-																Rescan
-															</Menu.Item>
-															<Menu.Divider />
-															<Menu.Item
-																leftSection={
-																	link.isArchived ? (
-																		<IconArchiveOff size={14} />
-																	) : (
-																		<IconArchive size={14} />
-																	)
-																}
-																onClick={() => handleArchive(link)}
-															>
-																{link.isArchived ? "Unarchive" : "Archive"}
-															</Menu.Item>
-															<Menu.Item
-																leftSection={<IconTrash size={14} />}
-																color="red"
-																onClick={() => handleDelete(link)}
-															>
-																Delete
-															</Menu.Item>
-														</Menu.Dropdown>
-													</Menu>
-												</Group>
-											</Table.Td>
-										</Table.Tr>
-									))}
-								</Table.Tbody>
-							</Table>
-						</Table.ScrollContainer>
-
-						{/* Pagination */}
-						{meta && meta.pageCount > 1 && (
-							<Group justify="center" p="md">
-								<Pagination
-									total={meta.pageCount}
-									value={page}
-									onChange={setPage}
-								/>
-							</Group>
-						)}
-					</>
-				)}
-			</Paper>
+			<DataTable
+				data={links}
+				columns={columns}
+				rowKey={(link) => link.id}
+				loading={isLoading || isFetching}
+				page={page}
+				pageCount={meta?.pageCount ?? 1}
+				onPageChange={setPage}
+				emptyState={{
+					icon: isArchived ? IconArchive : IconLink,
+					title: isArchived ? "No archived links" : "No links yet",
+					description: isArchived
+						? "Links you archive will appear here"
+						: "Create your first short link to get started",
+					actionLabel: isArchived ? undefined : "Create Link",
+					onAction: isArchived ? undefined : openCreateModal,
+				}}
+			/>
 
 			{/* Create Link Modal */}
 			<CreateLinkModal opened={createModalOpened} onClose={closeCreateModal} />

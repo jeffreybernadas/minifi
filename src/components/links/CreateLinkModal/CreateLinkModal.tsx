@@ -301,7 +301,7 @@ export function CreateLinkModal({ opened, onClose }: CreateLinkModalProps) {
 								render={({ field }) => (
 									<Checkbox
 										label="One-time link"
-										description="Link will be archived after first click"
+										description="Link will be deleted after first use"
 										checked={field.value}
 										onChange={(e) => field.onChange(e.currentTarget.checked)}
 									/>

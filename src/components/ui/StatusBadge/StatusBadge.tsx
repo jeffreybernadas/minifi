@@ -22,7 +22,7 @@ const SCAN_STATUS_CONFIG: Record<
 	ScanStatus,
 	{ color: MantineColor; label: string }
 > = {
-	PENDING: { color: "gray", label: "Scanning..." },
+	PENDING: { color: "blue", label: "Pending" },
 	SAFE: { color: "green", label: "Safe" },
 	SUSPICIOUS: { color: "yellow", label: "Suspicious" },
 	MALICIOUS: { color: "red", label: "Malicious" },
