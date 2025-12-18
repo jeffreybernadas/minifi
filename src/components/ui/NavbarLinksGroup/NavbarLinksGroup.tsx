@@ -10,6 +10,7 @@ interface LinksGroupProps {
 	link?: string;
 	initiallyOpened?: boolean;
 	links?: { label: string; link: string }[];
+	onNavigate?: () => void;
 }
 
 export function LinksGroup({
@@ -18,6 +19,7 @@ export function LinksGroup({
 	link,
 	initiallyOpened,
 	links,
+	onNavigate,
 }: LinksGroupProps) {
 	const location = useLocation();
 	const hasLinks = Array.isArray(links) && links.length > 0;
@@ -28,6 +30,7 @@ export function LinksGroup({
 			className={classes.link}
 			data-active={location.pathname === item.link || undefined}
 			to={item.link}
+			onClick={() => onNavigate?.()}
 			key={item.label}
 		>
 			{item.label}
@@ -42,6 +45,7 @@ export function LinksGroup({
 				to={link}
 				className={classes.control}
 				data-active={location.pathname === link || undefined}
+				onClick={() => onNavigate?.()}
 			>
 				<Group justify="space-between" gap={0}>
 					<Box style={{ display: "flex", alignItems: "center" }}>

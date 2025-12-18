@@ -31,6 +31,7 @@ import {
 	useCreatePortalMutation,
 	useGetSubscriptionQuery,
 } from "@/app/api/subscription.api";
+import { useGetLinksQuery } from "@/app/api/links.api";
 import {
 	useGetUserProfileQuery,
 	useUpdateUserPreferencesMutation,
@@ -86,6 +87,20 @@ function SubscriptionTab() {
 
 	const isPro = subscription?.tier === "PRO";
 	const isCancelled = subscription?.cancelAtPeriodEnd === true;
+	const shouldFetchUsage = Boolean(subscription && !isPro);
+	const {
+		data: usageData,
+		isLoading: isUsageLoading,
+		error: usageError,
+	} = useGetLinksQuery(
+		{ page: 1, limit: 1, isArchived: false },
+		{ skip: !shouldFetchUsage },
+	);
+	const activeLinksCount = usageData?.meta.itemCount ?? 0;
+	const usagePercent = Math.min(
+		100,
+		Math.round((activeLinksCount / FREE_LINK_LIMIT) * 100),
+	);
 
 	const handleUpgrade = async () => {
 		try {
@@ -160,7 +175,10 @@ function SubscriptionTab() {
 	return (
 		<Stack gap="lg">
 			<Paper shadow="sm" p="xl" withBorder pos="relative">
-				<LoadingOverlay visible={isLoading} />
+				<LoadingOverlay
+					visible={isLoading || (shouldFetchUsage && isUsageLoading)}
+					zIndex={5}
+				/>
 
 				{/* Current Plan */}
 				<Stack gap="md">
@@ -213,10 +231,19 @@ function SubscriptionTab() {
 									<Group justify="space-between" mb={4}>
 										<Text size="sm">Active Links</Text>
 										<Text size="sm" fw={500}>
-											0 / {FREE_LINK_LIMIT}
+											{usageError ? "--" : activeLinksCount} / {FREE_LINK_LIMIT}
 										</Text>
 									</Group>
-									<Progress value={0} size="sm" color="blue" />
+									<Progress
+										value={usageError ? 0 : usagePercent}
+										size="sm"
+										color={usagePercent >= 90 ? "orange" : "blue"}
+									/>
+									{usageError && (
+										<Text size="xs" c="red" mt={4}>
+											Failed to load usage: {getErrorMessage(usageError)}
+										</Text>
+									)}
 								</Box>
 								<Box>
 									<Text size="sm" c="dimmed">
@@ -351,7 +378,7 @@ function NotificationsTab() {
 	return (
 		<Stack gap="lg">
 			<Paper shadow="sm" p="xl" withBorder pos="relative">
-				<LoadingOverlay visible={isLoading} />
+				<LoadingOverlay visible={isLoading} zIndex={5} />
 
 				<Stack gap="lg">
 					<Box>

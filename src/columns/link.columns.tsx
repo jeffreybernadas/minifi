@@ -50,7 +50,7 @@ export const getLinkColumns = ({
 	{
 		key: "link",
 		header: "Link",
-    width: 500,
+		width: 500,
 		render: (link) => (
 			<Stack gap={4}>
 				<Group gap="xs">

@@ -11,7 +11,11 @@ import { UserBadges } from "@/components/ui";
 import { keycloak } from "@/features/auth";
 import classes from "./UserButton.module.css";
 
-export function UserButton() {
+interface UserButtonProps {
+	onNavigate?: () => void;
+}
+
+export function UserButton({ onNavigate }: UserButtonProps) {
 	const { data: profile } = useGetUserProfileQuery();
 
 	return (
@@ -69,6 +73,7 @@ export function UserButton() {
 				<Menu.Item
 					component={Link}
 					to="/dashboard/profile"
+					onClick={() => onNavigate?.()}
 					leftSection={<IconUser style={{ width: rem(16), height: rem(16) }} />}
 				>
 					Profile
@@ -76,6 +81,7 @@ export function UserButton() {
 				<Menu.Item
 					component={Link}
 					to="/dashboard/settings"
+					onClick={() => onNavigate?.()}
 					leftSection={
 						<IconSettings style={{ width: rem(16), height: rem(16) }} />
 					}

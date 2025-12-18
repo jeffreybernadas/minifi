@@ -10,7 +10,11 @@ export interface CopyButtonProps extends Omit<ButtonProps, "onClick"> {
 /**
  * Simple copy-to-clipboard button with optimistic UI feedback.
  */
-export function CopyButton({ value, label, ...props }: Readonly<CopyButtonProps>) {
+export function CopyButton({
+	value,
+	label,
+	...props
+}: Readonly<CopyButtonProps>) {
 	const clipboard = useClipboard({ timeout: 1500 });
 
 	const handleCopy = () => {

@@ -12,8 +12,10 @@ interface AppShellProps {
 }
 
 export function AppShell({ withSidebar = false }: AppShellProps) {
-	const [mobileOpened, { toggle: toggleMobile }] = useDisclosure();
-	const [desktopOpened, { toggle: toggleDesktop }] = useDisclosure(true);
+	const [mobileOpened, mobileHandlers] = useDisclosure();
+	const [desktopOpened, desktopHandlers] = useDisclosure(true);
+	const { toggle: toggleMobile, close: closeMobile } = mobileHandlers;
+	const { toggle: toggleDesktop } = desktopHandlers;
 
 	// Pre-fetch user profile for authenticated pages (with sidebar)
 	// This ensures profile data is available for UserButton and other components
@@ -49,7 +51,7 @@ export function AppShell({ withSidebar = false }: AppShellProps) {
 
 			{withSidebar && (
 				<MantineAppShell.Navbar>
-					<Sidebar />
+					<Sidebar onCloseMobile={closeMobile} />
 				</MantineAppShell.Navbar>
 			)}
 

@@ -1,9 +1,10 @@
-import { Code, Group, ScrollArea } from "@mantine/core";
+import { ActionIcon, Code, Group, ScrollArea } from "@mantine/core";
 import {
 	IconGauge,
 	IconLayoutDashboard,
 	IconPresentationAnalytics,
 	IconTags,
+	IconX,
 } from "@tabler/icons-react";
 import { LinksGroup, Logo, UserButton } from "@/components/ui";
 import { useAuth } from "@/hooks";
@@ -37,7 +38,11 @@ const adminNavigation = [
 	},
 ];
 
-export function Sidebar() {
+interface SidebarProps {
+	onCloseMobile?: () => void;
+}
+
+export function Sidebar({ onCloseMobile }: SidebarProps) {
 	const { isAdmin } = useAuth();
 
 	// Combine user navigation with admin navigation if user is admin
@@ -46,7 +51,7 @@ export function Sidebar() {
 		: userNavigation;
 
 	const links = navigationData.map((item) => (
-		<LinksGroup {...item} key={item.label} />
+		<LinksGroup {...item} key={item.label} onNavigate={onCloseMobile} />
 	));
 
 	return (
@@ -54,7 +59,21 @@ export function Sidebar() {
 			<div className={classes.header}>
 				<Group justify="space-between" w="100%">
 					<Logo />
-					<Code fw={700}>v{packageJson.version}</Code>
+					<Group gap="xs">
+						<Code fw={700}>v{packageJson.version}</Code>
+						{onCloseMobile && (
+							<ActionIcon
+								variant="subtle"
+								color="gray"
+								size="lg"
+								onClick={onCloseMobile}
+								hiddenFrom="sm"
+								aria-label="Close navigation"
+							>
+								<IconX size={16} />
+							</ActionIcon>
+						)}
+					</Group>
 				</Group>
 			</div>
 
@@ -63,7 +82,7 @@ export function Sidebar() {
 			</ScrollArea>
 
 			<div className={classes.footer}>
-				<UserButton />
+				<UserButton onNavigate={onCloseMobile} />
 			</div>
 		</nav>
 	);
