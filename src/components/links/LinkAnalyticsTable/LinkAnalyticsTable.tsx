@@ -1,7 +1,6 @@
-import { Button, Center, Paper, Stack, Text, Title } from "@mantine/core";
+import { Text } from "@mantine/core";
 import type { TablerIcon } from "@tabler/icons-react";
-import { IconActivity, IconCrown, IconLock } from "@tabler/icons-react";
-import { useNavigate } from "react-router-dom";
+import { IconActivity } from "@tabler/icons-react";
 import { type Column, DataTable } from "@/components/ui";
 import type { LinkAnalytics } from "@/types";
 
@@ -19,7 +18,9 @@ const buildColumns = (): Column<LinkAnalytics>[] => [
 		render: (row) => (
 			<Text size="sm">
 				{row.city || row.country
-					? `${row.city ?? ""}${row.city && row.country ? ", " : ""}${row.country ?? "Unknown"}`
+					? `${row.city ?? ""}${row.city && row.country ? ", " : ""}${
+							row.country ?? "Unknown"
+						}`
 					: "Unknown"}
 			</Text>
 		),
@@ -68,7 +69,6 @@ export interface LinkAnalyticsTableProps {
 	onPageChange: (page: number) => void;
 	loading?: boolean;
 	emptyIcon?: TablerIcon;
-	isPro?: boolean;
 }
 
 export function LinkAnalyticsTable({
@@ -78,36 +78,7 @@ export function LinkAnalyticsTable({
 	onPageChange,
 	loading,
 	emptyIcon = IconActivity,
-	isPro = false,
 }: Readonly<LinkAnalyticsTableProps>) {
-	const navigate = useNavigate();
-
-	// FREE users don't have access to click log
-	if (!isPro) {
-		return (
-			<Paper withBorder p="xl" radius="md">
-				<Center py="xl">
-					<Stack align="center" gap="md">
-						<IconLock size={48} color="var(--mantine-color-gray-5)" />
-						<Title order={4}>Click Log - PRO Feature</Title>
-						<Text size="sm" c="dimmed" ta="center" maw={400}>
-							Upgrade to PRO to access detailed click logs with visitor
-							information, device data, referrers, and UTM tracking.
-						</Text>
-						<Button
-							variant="light"
-							color="violet"
-							leftSection={<IconCrown size={16} />}
-							onClick={() => navigate("/dashboard/settings")}
-						>
-							Upgrade to PRO
-						</Button>
-					</Stack>
-				</Center>
-			</Paper>
-		);
-	}
-
 	return (
 		<DataTable
 			data={records}

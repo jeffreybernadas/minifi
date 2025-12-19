@@ -6,7 +6,9 @@ import {
 	Paper,
 	Stack,
 	Text,
+	Tooltip,
 } from "@mantine/core";
+import { DatePickerInput } from "@mantine/dates";
 import {
 	IconArchive,
 	IconArchiveOff,
@@ -27,6 +29,10 @@ export interface LinkDetailHeaderProps {
 	archiveLoading?: boolean;
 	rescanLoading?: boolean;
 	deleteLoading?: boolean;
+	// Date range filter (PRO feature)
+	dateRange?: [string | null, string | null];
+	onDateRangeChange?: (value: [string | null, string | null]) => void;
+	isPro?: boolean;
 }
 
 export function LinkDetailHeader({
@@ -38,6 +44,9 @@ export function LinkDetailHeader({
 	archiveLoading,
 	rescanLoading,
 	deleteLoading,
+	dateRange,
+	onDateRangeChange,
+	isPro = false,
 }: Readonly<LinkDetailHeaderProps>) {
 	const shortUrl =
 		link.shortUrl ||
@@ -128,6 +137,34 @@ export function LinkDetailHeader({
 								Edit
 							</Button>
 						)}
+
+						{/* Date Range Filter (PRO feature) */}
+						{dateRange !== undefined && onDateRangeChange && (
+							<Tooltip
+								label="Upgrade to PRO to filter by custom date range"
+								disabled={isPro}
+								withArrow
+							>
+								<div>
+									<DatePickerInput
+										type="range"
+										placeholder="Filter by date"
+										value={dateRange}
+										onChange={onDateRangeChange}
+										clearable
+										maxDate={new Date()}
+										disabled={!isPro}
+										size="sm"
+										styles={{
+											input: {
+												fontSize: "0.875rem",
+											},
+										}}
+									/>
+								</div>
+							</Tooltip>
+						)}
+
 						{onRescan && (
 							<Button
 								variant="light"

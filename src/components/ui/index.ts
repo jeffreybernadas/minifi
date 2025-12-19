@@ -1,4 +1,9 @@
 export { CopyButton } from "./CopyButton/CopyButton";
+export type {
+	AnalyticsPieChartDatum,
+	AnalyticsPieChartProps,
+} from "./AnalyticsPieChart";
+export { AnalyticsPieChart } from "./AnalyticsPieChart";
 export type { Column, DataTableProps, EmptyStateConfig } from "./DataTable";
 export { DataTable } from "./DataTable";
 export type { EmptyStateProps } from "./EmptyState";

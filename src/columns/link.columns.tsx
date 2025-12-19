@@ -42,7 +42,7 @@ export interface LinkColumnsOptions {
 	onArchive: (link: LinkType) => void;
 	onDelete: (link: LinkType) => void;
 }
-
+// Dashboard Columns
 export const getLinkColumns = ({
 	onNavigate,
 	onEdit,

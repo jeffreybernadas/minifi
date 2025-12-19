@@ -203,9 +203,21 @@ export const linksApi = baseApi.injectEndpoints({
 		/**
 		 * Get link analytics summary (aggregated stats)
 		 */
-		getAnalyticsSummary: builder.query<LinkAnalyticsSummary, string>({
-			query: (id) => `/links/${id}/analytics/summary`,
-			providesTags: (_result, _error, id) => [{ type: "LinkAnalytics", id }],
+		getAnalyticsSummary: builder.query<
+			LinkAnalyticsSummary,
+			{ id: string; startDate?: string; endDate?: string }
+		>({
+			query: ({ id, startDate, endDate }) => ({
+				url: `/links/${id}/analytics/summary`,
+				method: "GET",
+				params: {
+					...(startDate && { startDate }),
+					...(endDate && { endDate }),
+				},
+			}),
+			providesTags: (_result, _error, { id }) => [
+				{ type: "LinkAnalytics", id },
+			],
 		}),
 
 		/**

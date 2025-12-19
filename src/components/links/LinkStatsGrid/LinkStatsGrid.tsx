@@ -6,12 +6,17 @@ import type { Link, LinkAnalyticsSummary } from "@/types";
 export interface LinkStatsGridProps {
 	link: Link;
 	summary?: LinkAnalyticsSummary;
+	loading?: boolean;
 }
 
 const formatDateTime = (value?: string | null) =>
 	value ? new Date(value).toLocaleString() : "Never";
 
-export function LinkStatsGrid({ link, summary }: Readonly<LinkStatsGridProps>) {
+export function LinkStatsGrid({
+	link,
+	summary,
+	loading,
+}: Readonly<LinkStatsGridProps>) {
 	const totalClicks = summary?.totalClicks ?? link.clickCount;
 	const uniqueVisitors = summary?.uniqueVisitors ?? link.uniqueClickCount;
 	const lastClicked = formatDateTime(link.lastClickedAt);
@@ -24,12 +29,14 @@ export function LinkStatsGrid({ link, summary }: Readonly<LinkStatsGridProps>) {
 				value={totalClicks.toLocaleString()}
 				icon={IconPointer}
 				iconColor="blue"
+				loading={loading}
 			/>
 			<StatsCard
 				title="Unique Visitors"
 				value={uniqueVisitors.toLocaleString()}
 				icon={IconUsers}
 				iconColor="teal"
+				loading={loading}
 			/>
 			<StatsCard
 				title="Last Click"

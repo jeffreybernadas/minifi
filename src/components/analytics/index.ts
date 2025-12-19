@@ -2,12 +2,6 @@
 export { ClicksTimelineChart } from "./ClicksTimelineChart";
 export type { ClicksTimelineChartProps } from "./ClicksTimelineChart";
 
-export { DevicePieChart } from "./DevicePieChart";
-export type { DevicePieChartProps } from "./DevicePieChart";
-
-export { BrowserPieChart } from "./BrowserPieChart";
-export type { BrowserPieChartProps } from "./BrowserPieChart";
-
 export { ReferrerBarChart } from "./ReferrerBarChart";
 export type { ReferrerBarChartProps } from "./ReferrerBarChart";
 

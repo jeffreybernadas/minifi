@@ -26,7 +26,7 @@ export function StatsCard({
 	iconColor = "blue",
 	description,
 	loading = false,
-}: StatsCardProps) {
+}: Readonly<StatsCardProps>) {
 	return (
 		<Paper withBorder p="md" radius="md">
 			<Group justify="space-between" align="flex-start" wrap="nowrap">

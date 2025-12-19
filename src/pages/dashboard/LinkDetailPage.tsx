@@ -24,8 +24,16 @@ import {
 	useUnarchiveLinkMutation,
 } from "@/app/api/links.api";
 import {
+	BrowserPieChart,
+	ClicksTimelineChart,
+	DevicePieChart,
+	GeoHeatMap,
+	ReferrerBarChart,
+	TopCountriesTable,
+} from "@/components/analytics";
+import { ProFeatureGuard } from "@/components/common";
+import {
 	EditLinkModal,
-	LinkAnalyticsSummary,
 	LinkAnalyticsTable,
 	LinkDetailHeader,
 	LinkInfoGrid,
@@ -34,7 +42,7 @@ import {
 	LinkStatsGrid,
 } from "@/components/links";
 import { useAuth } from "@/hooks";
-import type { Link } from "@/types";
+import type { Link, TopCountryData } from "@/types";
 import { getErrorMessage } from "@/types";
 
 export default function LinkDetailPage() {
@@ -187,6 +195,20 @@ export default function LinkDetailPage() {
 	const analyticsData = analyticsQuery.data?.data ?? [];
 	const analyticsMeta = analyticsQuery.data?.meta;
 
+	// Prepare data for charts
+	const summary = summaryQuery.data;
+	const clicksByDate = summary?.clicksByDate ?? [];
+	const topCountries = summary?.topCountries ?? [];
+	const topDevices = summary?.topDevices ?? [];
+	const topBrowsers = summary?.topBrowsers ?? [];
+	const topReferrers = summary?.topReferrers ?? [];
+
+	// Convert TopCountry to TopCountryData for heat map
+	const topCountriesData: TopCountryData[] = topCountries.map((c) => ({
+		country: c.country,
+		clicks: c.count,
+	}));
+
 	return (
 		<Stack gap="lg">
 			<Group justify="space-between" align="center">
@@ -213,20 +235,84 @@ export default function LinkDetailPage() {
 
 			<SimpleGrid cols={{ base: 1, lg: 3 }} spacing="lg">
 				<Stack gap="lg" style={{ gridColumn: "span 2" }}>
+					{/* Summary Stats */}
 					<LinkStatsGrid link={link} summary={summaryQuery.data} />
-					<LinkAnalyticsSummary
-						summary={summaryQuery.data}
+
+					{/* Clicks Timeline - Available to all */}
+					<ClicksTimelineChart
+						data={clicksByDate}
 						loading={summaryQuery.isLoading}
-						isPro={isPro}
+						title={
+							isPro ? "Clicks Over Time (90 days)" : "Clicks Over Time (7 days)"
+						}
 					/>
-					<LinkAnalyticsTable
-						records={analyticsData}
-						page={page}
-						pageCount={analyticsMeta?.pageCount ?? 1}
-						onPageChange={setPage}
-						loading={analyticsQuery.isLoading}
+
+					{/* Geographic Analytics */}
+					<SimpleGrid cols={{ base: 1, md: 2 }} spacing="md">
+						<ProFeatureGuard
+							isPro={isPro}
+							featureName="Geographic Heat Map"
+							upgradeMessage="Visualize your global reach with an interactive heat map showing click intensity by country."
+						>
+							<GeoHeatMap
+								data={topCountriesData}
+								loading={summaryQuery.isLoading}
+							/>
+						</ProFeatureGuard>
+
+						<TopCountriesTable
+							data={topCountries}
+							loading={summaryQuery.isLoading}
+							limit={isPro ? 10 : 3}
+						/>
+					</SimpleGrid>
+
+					{/* Device & Browser Analytics - PRO Only */}
+					<ProFeatureGuard
 						isPro={isPro}
-					/>
+						featureName="Device & Browser Analytics"
+						upgradeMessage="Understand your audience better with detailed device and browser breakdowns."
+					>
+						<SimpleGrid cols={{ base: 1, md: 2 }} spacing="md">
+							<DevicePieChart
+								data={topDevices}
+								loading={summaryQuery.isLoading}
+							/>
+							<BrowserPieChart
+								data={topBrowsers}
+								loading={summaryQuery.isLoading}
+							/>
+						</SimpleGrid>
+					</ProFeatureGuard>
+
+					{/* Referrer Analytics - PRO Only */}
+					<ProFeatureGuard
+						isPro={isPro}
+						featureName="Traffic Sources"
+						upgradeMessage="Discover where your clicks are coming from with detailed referrer tracking."
+					>
+						<ReferrerBarChart
+							data={topReferrers}
+							loading={summaryQuery.isLoading}
+							limit={10}
+						/>
+					</ProFeatureGuard>
+
+					{/* Click Log Table - PRO Only */}
+					<ProFeatureGuard
+						isPro={isPro}
+						featureName="Click Log"
+						upgradeMessage="Access detailed click-level data with visitor information, device data, referrers, and UTM tracking."
+					>
+						<LinkAnalyticsTable
+							records={analyticsData}
+							page={page}
+							pageCount={analyticsMeta?.pageCount ?? 1}
+							onPageChange={setPage}
+							loading={analyticsQuery.isLoading}
+							isPro={isPro}
+						/>
+					</ProFeatureGuard>
 				</Stack>
 
 				<Stack gap="md">

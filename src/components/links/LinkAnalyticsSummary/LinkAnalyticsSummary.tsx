@@ -118,7 +118,7 @@ export function LinkAnalyticsSummary({
 						dataKey="date"
 						series={[{ name: "Clicks", color: "blue.5" }]}
 						strokeWidth={2}
-						curveType="monotoneX"
+						curveType="monotone"
 					/>
 				)}
 			</Paper>

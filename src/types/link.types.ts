@@ -345,7 +345,7 @@ export interface TopReferrerData {
 
 /**
  * User monthly analytics result from LinkService (Global Analytics)
- * Returned by GET /v1/analytics/overview?startDate=&endDate=
+ * Returned by GET /v1/links/analytics/overview?startDate=&endDate=
  * Used in /dashboard/analytics/* pages
  */
 export interface UserMonthlyAnalytics {
@@ -359,6 +359,7 @@ export interface UserMonthlyAnalytics {
 	topDevices: TopDeviceData[];
 	topReferrers: TopReferrerData[];
 	bestDay?: { date: string; clicks: number };
+	clicksByDate: ClicksByDate[];
 }
 
 /**
