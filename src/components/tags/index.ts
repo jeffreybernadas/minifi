@@ -1,4 +1,4 @@
-export { CreateTagModal } from "./CreateTagModal";
-export type { CreateTagModalProps } from "./CreateTagModal";
-export { TagPicker } from "./TagPicker";
-export type { TagPickerProps } from "./TagPicker";
+export { CreateTagModal } from "./CreateTagModal/CreateTagModal";
+export type { CreateTagModalProps } from "./CreateTagModal/CreateTagModal";
+export { TagPicker } from "./TagPicker/TagPicker";
+export type { TagPickerProps } from "./TagPicker/TagPicker";

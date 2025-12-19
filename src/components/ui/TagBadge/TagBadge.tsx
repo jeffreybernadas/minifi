@@ -40,7 +40,7 @@ export function TagBadge({
 							e.stopPropagation();
 							onRemove();
 						}}
-						style={{ color: tag.textColor }}
+						style={{ backgroundColor: "transparent", color: tag.textColor }}
 						aria-label={`Remove tag ${tag.name}`}
 					/>
 				) : undefined

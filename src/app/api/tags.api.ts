@@ -25,10 +25,11 @@ export const tagsApi = baseApi.injectEndpoints({
 		 */
 		getTags: builder.query<Tag[], void>({
 			query: () => "/links/tags",
-			providesTags: (result) =>
-				result
+			transformResponse: (response: { data: Tag[] }) => response.data,
+			providesTags: (tags) =>
+				tags
 					? [
-							...result.map(({ id }) => ({ type: "Tag" as const, id })),
+							...tags.map(({ id }) => ({ type: "Tag" as const, id })),
 							{ type: "Tag", id: "LIST" },
 						]
 					: [{ type: "Tag", id: "LIST" }],

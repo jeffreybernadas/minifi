@@ -10,3 +10,5 @@ export { LinkInfoGrid } from "./LinkInfoGrid/LinkInfoGrid";
 export { LinkQrCard } from "./LinkQrCard/LinkQrCard";
 export { LinkScanDetails } from "./LinkScanDetails/LinkScanDetails";
 export { LinkStatsGrid } from "./LinkStatsGrid/LinkStatsGrid";
+export type { LinkTagsCardProps } from "./LinkTagsCard";
+export { LinkTagsCard } from "./LinkTagsCard";

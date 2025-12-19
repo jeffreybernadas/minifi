@@ -2,7 +2,7 @@ import { MultiSelect, Button, Group, Stack } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { IconPlus } from "@tabler/icons-react";
 import { useGetTagsQuery } from "@/app/api/tags.api";
-import { CreateTagModal } from "./CreateTagModal";
+import { CreateTagModal } from "../CreateTagModal/CreateTagModal";
 import { TagBadge } from "@/components/ui";
 import type { Tag } from "@/types";
 

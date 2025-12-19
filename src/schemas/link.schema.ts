@@ -37,6 +37,7 @@ export const createLinkSchema = z.object({
 		.string()
 		.max(1000, "Notes must be 1000 characters or less")
 		.optional(),
+	tagIds: z.array(z.string()).optional(),
 });
 
 export type CreateLinkFormValues = z.infer<typeof createLinkSchema>;
@@ -75,6 +76,7 @@ export const editLinkSchema = z.object({
 		.string()
 		.max(1000, "Notes must be 1000 characters or less")
 		.optional(),
+	tagIds: z.array(z.string()).optional(),
 });
 
 export type EditLinkFormValues = z.infer<typeof editLinkSchema>;
