@@ -52,45 +52,51 @@ export default function TagsPage() {
 	const pageCount = Math.ceil(filteredTags.length / limit);
 
 	// Handlers
-	const handleEdit = useCallback((tag: Tag) => {
-		setEditingTag(tag);
-		openEdit();
-	}, [openEdit]);
+	const handleEdit = useCallback(
+		(tag: Tag) => {
+			setEditingTag(tag);
+			openEdit();
+		},
+		[openEdit],
+	);
 
 	const handleCloseEdit = () => {
 		setEditingTag(null);
 		closeEdit();
 	};
 
-	const handleDelete = useCallback((tag: Tag) => {
-		modals.openConfirmModal({
-			title: "Delete Tag",
-			children: (
-				<Text size="sm">
-					Are you sure you want to delete the tag "{tag.name}"? This will remove
-					it from all linked links.
-				</Text>
-			),
-			labels: { confirm: "Delete", cancel: "Cancel" },
-			confirmProps: { color: "red" },
-			onConfirm: async () => {
-				try {
-					await deleteTag(tag.id).unwrap();
-					notifications.show({
-						title: "Tag Deleted",
-						message: "Tag has been removed",
-						color: "green",
-					});
-				} catch (err) {
-					notifications.show({
-						title: "Error",
-						message: getErrorMessage(err),
-						color: "red",
-					});
-				}
-			},
-		});
-	}, [deleteTag]);
+	const handleDelete = useCallback(
+		(tag: Tag) => {
+			modals.openConfirmModal({
+				title: "Delete Tag",
+				children: (
+					<Text size="sm">
+						Are you sure you want to delete the tag "{tag.name}"? This will
+						remove it from all linked links.
+					</Text>
+				),
+				labels: { confirm: "Delete", cancel: "Cancel" },
+				confirmProps: { color: "red" },
+				onConfirm: async () => {
+					try {
+						await deleteTag(tag.id).unwrap();
+						notifications.show({
+							title: "Tag Deleted",
+							message: "Tag has been removed",
+							color: "green",
+						});
+					} catch (err) {
+						notifications.show({
+							title: "Error",
+							message: getErrorMessage(err),
+							color: "red",
+						});
+					}
+				},
+			});
+		},
+		[deleteTag],
+	);
 
 	const columns = useMemo(
 		() =>

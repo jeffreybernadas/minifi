@@ -15,3 +15,5 @@ export type { TopCountriesTableProps } from "./TopCountriesTable";
 // Empty State
 export { AnalyticsEmptyState } from "./AnalyticsEmptyState";
 export type { AnalyticsEmptyStateProps } from "./AnalyticsEmptyState";
+export { TopLinksTable } from "./TopLinksTable";
+export type { TopLinksTableProps } from "./TopLinksTable";

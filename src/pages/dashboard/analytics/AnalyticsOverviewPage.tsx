@@ -1,13 +1,11 @@
 import {
 	Badge,
-	Center,
 	Grid,
 	Tooltip,
 	Group,
 	Paper,
 	SimpleGrid,
 	Stack,
-	Table,
 	Text,
 	Title,
 } from "@mantine/core";
@@ -25,6 +23,7 @@ import {
 	AnalyticsEmptyState,
 	ClicksTimelineChart,
 	ReferrerBarChart,
+	TopLinksTable,
 } from "@/components/analytics";
 import { ProFeatureGuard } from "@/components/common";
 import { useAuth } from "@/hooks";
@@ -201,56 +200,12 @@ export default function AnalyticsOverviewPage() {
 			<Grid gutter="md">
 				{/* Top Links Table */}
 				<Grid.Col span={{ base: 12, md: 6 }}>
-					<Paper withBorder p="md" radius="md">
-						<Stack gap="md">
-							<Title order={4}>Top 5 Performing Links</Title>
-							{topLinks.length === 0 ? (
-								<Center py="xl">
-									<Text c="dimmed">No links data available</Text>
-								</Center>
-							) : (
-								<Table>
-									<Table.Thead>
-										<Table.Tr>
-											<Table.Th>Link</Table.Th>
-											<Table.Th style={{ textAlign: "right" }}>Clicks</Table.Th>
-											<Table.Th style={{ textAlign: "right" }}>Unique</Table.Th>
-										</Table.Tr>
-									</Table.Thead>
-									<Table.Tbody>
-										{topLinks.slice(0, 5).map((link, index) => (
-											<Table.Tr
-												key={index + link.id}
-												style={{ cursor: "pointer" }}
-												onClick={() => navigate(`/dashboard/links/${link.id}`)}
-											>
-												<Table.Td>
-													<Stack gap={2}>
-														<Text size="sm" fw={500} lineClamp={1}>
-															{link.title || link.shortCode}
-														</Text>
-														<Text size="xs" c="dimmed" ff="monospace">
-															/{link.shortCode}
-														</Text>
-													</Stack>
-												</Table.Td>
-												<Table.Td style={{ textAlign: "right" }}>
-													<Text size="sm" fw={500}>
-														{link.clicks.toLocaleString()}
-													</Text>
-												</Table.Td>
-												<Table.Td style={{ textAlign: "right" }}>
-													<Text size="sm" c="dimmed">
-														{link.uniqueClicks.toLocaleString()}
-													</Text>
-												</Table.Td>
-											</Table.Tr>
-										))}
-									</Table.Tbody>
-								</Table>
-							)}
-						</Stack>
-					</Paper>
+					<TopLinksTable
+						data={topLinks}
+						loading={isLoading || isFetching}
+						limit={5}
+						title="Top 5 Performing Links"
+					/>
 				</Grid.Col>
 
 				{/* Top Referrers - PRO Feature */}
