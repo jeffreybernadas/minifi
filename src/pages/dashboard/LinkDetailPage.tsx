@@ -71,12 +71,8 @@ export default function LinkDetailPage() {
 		refetch: refetchLink,
 	} = useGetLinkQuery(id ?? "", { skip: !id });
 	const summaryQuery = useGetAnalyticsSummaryQuery(
-		{
-			id: id ?? "",
-			startDate: startDate ?? undefined,
-			endDate: endDate ?? undefined,
-		},
-		{ skip: !id },
+		{ id: id ?? "", startDate: startDate!, endDate: endDate! },
+		{ skip: !id || Boolean(startDate) !== Boolean(endDate) },
 	);
 	const analyticsQuery = useGetLinkAnalyticsQuery(
 		{
@@ -84,11 +80,10 @@ export default function LinkDetailPage() {
 			filters: {
 				page,
 				limit,
-				...(startDate && { startDate }),
-				...(endDate && { endDate }),
+				...(startDate && endDate && { startDate, endDate }),
 			},
 		},
-		{ skip: !id },
+		{ skip: !id || Boolean(startDate) !== Boolean(endDate) },
 	);
 
 	const [archiveLink, { isLoading: isArchiving }] = useArchiveLinkMutation();

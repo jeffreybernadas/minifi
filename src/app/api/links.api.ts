@@ -227,12 +227,15 @@ export const linksApi = baseApi.injectEndpoints({
 		 */
 		getGlobalAnalytics: builder.query<
 			UserMonthlyAnalytics,
-			{ startDate?: string; endDate?: string } | undefined
+			{ startDate?: string; endDate?: string }
 		>({
-			query: (params) => ({
+			query: ({ startDate, endDate }) => ({
 				url: "/links/analytics/overview",
 				method: "GET",
-				params: params || {},
+				params: {
+					...(startDate && { startDate }),
+					...(endDate && { endDate }),
+				},
 			}),
 			providesTags: ["LinkAnalytics"],
 		}),

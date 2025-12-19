@@ -1,5 +1,9 @@
 import { Group, Paper, Stack, Text, ThemeIcon } from "@mantine/core";
-import type { TablerIcon } from "@tabler/icons-react";
+import {
+	IconArrowDown,
+	IconArrowUp,
+	type TablerIcon,
+} from "@tabler/icons-react";
 
 export interface StatsCardProps {
 	/** Card title/label */
@@ -14,6 +18,8 @@ export interface StatsCardProps {
 	description?: string;
 	/** Loading state */
 	loading?: boolean;
+	/** Optional growth value */
+	growth?: number;
 }
 
 /**
@@ -26,6 +32,7 @@ export function StatsCard({
 	iconColor = "blue",
 	description,
 	loading = false,
+	growth,
 }: Readonly<StatsCardProps>) {
 	return (
 		<Paper withBorder p="md" radius="md">
@@ -51,6 +58,18 @@ export function StatsCard({
 						<Text size="xs" c="dimmed">
 							{description}
 						</Text>
+					)}
+					{growth && (
+						<Group gap={4}>
+							{growth && growth >= 0 ? (
+								<IconArrowUp size={16} color="var(--mantine-color-green-6)" />
+							) : (
+								<IconArrowDown size={16} color="var(--mantine-color-red-6)" />
+							)}
+							<Text size="xs" c={growth >= 0 ? "green" : "red"} fw={500}>
+								{Math.abs(growth).toFixed(1)}% vs last month
+							</Text>
+						</Group>
 					)}
 				</Stack>
 				{Icon && (

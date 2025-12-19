@@ -300,6 +300,7 @@ export interface LinkAnalyticsSummary {
  * Top link data for global analytics overview
  */
 export interface TopLinkData {
+	id: string;
 	shortCode: string;
 	title?: string;
 	clicks: number;
@@ -335,6 +336,18 @@ export interface TopDeviceData {
 	percentage: number;
 }
 
+export interface TopBrowserData {
+	browser: string;
+	clicks: number;
+	percentage: number;
+}
+
+export interface TopOSData {
+	os: string;
+	clicks: number;
+	percentage: number;
+}
+
 /**
  * Top referrer data for global analytics overview
  */
@@ -357,6 +370,8 @@ export interface UserMonthlyAnalytics {
 	topLinks: TopLinkData[];
 	topCountries: TopCountryData[];
 	topDevices: TopDeviceData[];
+	topBrowsers: TopBrowserData[];
+	topOs: TopOSData[];
 	topReferrers: TopReferrerData[];
 	bestDay?: { date: string; clicks: number };
 	clicksByDate: ClicksByDate[];
