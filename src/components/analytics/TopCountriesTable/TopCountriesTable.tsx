@@ -1,10 +1,5 @@
 import { Paper, Progress, Stack, Table, Text, Title } from "@mantine/core";
-import type {
-	TopCity,
-	TopCityData,
-	TopCountry,
-	TopCountryData,
-} from "@/types";
+import type { TopCity, TopCityData, TopCountry, TopCountryData } from "@/types";
 import { AnalyticsEmptyState } from "../AnalyticsEmptyState";
 
 export interface TopCountriesTableProps {
@@ -175,16 +170,12 @@ export function TopCountriesTable({
 							const percentage = (clicks / totalClicks) * 100;
 							const name = getName(row);
 							const flag =
-								showFlag && "country" in row
-									? COUNTRY_FLAGS[name] || "🌍"
-									: "";
+								showFlag && "country" in row ? COUNTRY_FLAGS[name] || "🌍" : "";
 
 							return (
 								<Table.Tr key={index}>
 									<Table.Td>
-										<Text size="sm">
-											{flag ? `${flag} ${name}` : name}
-										</Text>
+										<Text size="sm">{flag ? `${flag} ${name}` : name}</Text>
 									</Table.Td>
 									<Table.Td style={{ textAlign: "right" }}>
 										<Text size="sm" fw={500}>

@@ -21,17 +21,14 @@ import {
 } from "@tabler/icons-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
 import { useCreateGuestLinkMutation } from "@/app/api/links.api";
 import { CopyButton } from "@/components/ui";
 import { keycloak } from "@/features/auth";
+import {
+	type GuestLinkFormValues,
+	guestLinkSchema,
+} from "@/schemas/link.schema";
 import { getErrorMessage } from "@/types";
-
-const schema = z.object({
-	originalUrl: z.string().url("Please enter a valid URL"),
-});
-
-type FormValues = z.infer<typeof schema>;
 
 /**
  * Guest link creation form for landing page.
@@ -46,8 +43,8 @@ export function CreateGuestLinkForm() {
 		handleSubmit,
 		formState: { errors },
 		reset,
-	} = useForm<FormValues>({
-		resolver: zodResolver(schema),
+	} = useForm<GuestLinkFormValues>({
+		resolver: zodResolver(guestLinkSchema),
 		defaultValues: { originalUrl: "" },
 	});
 

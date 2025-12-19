@@ -26,49 +26,11 @@ import {
 } from "@tabler/icons-react";
 import { useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
-import { z } from "zod";
 import { useUpdateLinkMutation } from "@/app/api/links.api";
 import { useAuth } from "@/hooks";
+import { type EditLinkFormValues, editLinkSchema } from "@/schemas/link.schema";
 import type { Link } from "@/types";
 import { getErrorMessage } from "@/types";
-
-const editLinkSchema = z.object({
-	title: z.string().max(100, "Title must be 100 characters or less").optional(),
-	description: z
-		.string()
-		.max(500, "Description must be 500 characters or less")
-		.optional(),
-	customAlias: z
-		.string()
-		.min(3, "Alias must be at least 3 characters")
-		.max(30, "Alias must be 30 characters or less")
-		.regex(
-			/^[a-zA-Z0-9_-]*$/,
-			"Alias can only contain letters, numbers, hyphens and underscores",
-		)
-		.optional()
-		.or(z.literal("")),
-	password: z
-		.string()
-		.min(6, "Password must be at least 6 characters")
-		.optional()
-		.or(z.literal("")),
-	removePassword: z.boolean().optional(),
-	scheduledAt: z.date().nullable().optional(),
-	expiresAt: z.date().nullable().optional(),
-	clickLimit: z
-		.number()
-		.min(1, "Click limit must be at least 1")
-		.nullable()
-		.optional(),
-	isOneTime: z.boolean().optional(),
-	notes: z
-		.string()
-		.max(1000, "Notes must be 1000 characters or less")
-		.optional(),
-});
-
-type EditLinkFormValues = z.infer<typeof editLinkSchema>;
 
 export interface EditLinkModalProps {
 	link: Link | null;

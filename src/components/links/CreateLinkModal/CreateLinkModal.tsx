@@ -23,52 +23,13 @@ import {
 	IconSettings,
 } from "@tabler/icons-react";
 import { Controller, useForm } from "react-hook-form";
-import { z } from "zod";
 import { useCreateLinkMutation } from "@/app/api/links.api";
 import { useAuth } from "@/hooks";
+import {
+	type CreateLinkFormValues,
+	createLinkSchema,
+} from "@/schemas/link.schema";
 import { getErrorMessage } from "@/types";
-
-// Form schema - aligned with backend CreateLinkDto validation
-const createLinkSchema = z.object({
-	originalUrl: z
-		.string()
-		.min(1, "Destination URL is required")
-		.url("Please enter a valid URL"),
-	title: z.string().max(100, "Title must be 100 characters or less").optional(),
-	description: z
-		.string()
-		.max(500, "Description must be 500 characters or less")
-		.optional(),
-	customAlias: z
-		.string()
-		.min(3, "Alias must be at least 3 characters")
-		.max(30, "Alias must be 30 characters or less")
-		.regex(
-			/^[a-zA-Z0-9_-]*$/,
-			"Alias can only contain letters, numbers, hyphens and underscores",
-		)
-		.optional()
-		.or(z.literal("")),
-	password: z
-		.string()
-		.min(6, "Password must be at least 6 characters")
-		.optional()
-		.or(z.literal("")),
-	scheduledAt: z.date().nullable().optional(),
-	expiresAt: z.date().nullable().optional(),
-	clickLimit: z
-		.number()
-		.min(1, "Click limit must be at least 1")
-		.nullable()
-		.optional(),
-	isOneTime: z.boolean().optional(),
-	notes: z
-		.string()
-		.max(1000, "Notes must be 1000 characters or less")
-		.optional(),
-});
-
-type CreateLinkFormValues = z.infer<typeof createLinkSchema>;
 
 export interface CreateLinkModalProps {
 	opened: boolean;

@@ -28,7 +28,6 @@ import {
 import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { z } from "zod";
 
 // Height that fits within viewport without scroll
 // Accounts for: header (60px), container padding (32px), footer (~60px)
@@ -41,14 +40,11 @@ import {
 	useVerifyPasswordMutation,
 } from "@/app/api/redirect.api";
 import { getRandomLoadingQuote } from "@/constants/loading-quotes.constant";
+import {
+	type RedirectPasswordFormValues,
+	redirectPasswordSchema,
+} from "@/schemas/redirect.schema";
 import { getErrorMessage } from "@/types";
-
-// Password form schema
-const passwordSchema = z.object({
-	password: z.string().min(1, "Password is required"),
-});
-
-type PasswordFormValues = z.infer<typeof passwordSchema>;
 
 // Security status config
 const SECURITY_CONFIG: Record<
@@ -107,8 +103,8 @@ export default function RedirectPage() {
 		handleSubmit,
 		formState: { errors },
 		reset: resetForm,
-	} = useForm<PasswordFormValues>({
-		resolver: zodResolver(passwordSchema),
+	} = useForm<RedirectPasswordFormValues>({
+		resolver: zodResolver(redirectPasswordSchema),
 	});
 
 	// Handle redirect flow
