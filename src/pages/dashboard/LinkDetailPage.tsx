@@ -1,6 +1,7 @@
 import {
 	Alert,
 	Button,
+	Grid,
 	Group,
 	Loader,
 	SimpleGrid,
@@ -11,7 +12,7 @@ import { useDisclosure } from "@mantine/hooks";
 import { modals } from "@mantine/modals";
 import { notifications } from "@mantine/notifications";
 import { IconArrowLeft } from "@tabler/icons-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
 	useArchiveLinkMutation,
@@ -24,13 +25,12 @@ import {
 	useUnarchiveLinkMutation,
 } from "@/app/api/links.api";
 import {
-	BrowserPieChart,
 	ClicksTimelineChart,
-	DevicePieChart,
 	GeoHeatMap,
 	ReferrerBarChart,
 	TopCountriesTable,
 } from "@/components/analytics";
+import { AnalyticsPieChart } from "@/components/ui";
 import { ProFeatureGuard } from "@/components/common";
 import {
 	EditLinkModal,
@@ -53,6 +53,16 @@ export default function LinkDetailPage() {
 	const limit = 10;
 	const [editModalOpened, { open: openEditModal, close: closeEditModal }] =
 		useDisclosure(false);
+	const [dateRange, setDateRange] = useState<[string | null, string | null]>([
+		null,
+		null,
+	]);
+	const [startDate, endDate] = dateRange;
+
+	const handleDateRangeChange = (value: [string | null, string | null]) => {
+		setDateRange(value);
+		setPage(1); // Reset to first page when date range changes
+	};
 
 	const {
 		data: link,
@@ -60,9 +70,24 @@ export default function LinkDetailPage() {
 		error: linkError,
 		refetch: refetchLink,
 	} = useGetLinkQuery(id ?? "", { skip: !id });
-	const summaryQuery = useGetAnalyticsSummaryQuery(id ?? "", { skip: !id });
+	const summaryQuery = useGetAnalyticsSummaryQuery(
+		{
+			id: id ?? "",
+			startDate: startDate ?? undefined,
+			endDate: endDate ?? undefined,
+		},
+		{ skip: !id },
+	);
 	const analyticsQuery = useGetLinkAnalyticsQuery(
-		{ id: id ?? "", filters: { page, limit } },
+		{
+			id: id ?? "",
+			filters: {
+				page,
+				limit,
+				...(startDate && { startDate }),
+				...(endDate && { endDate }),
+			},
+		},
 		{ skip: !id },
 	);
 
@@ -168,10 +193,6 @@ export default function LinkDetailPage() {
 		}
 	};
 
-	if (!id) {
-		return <Alert color="red">Missing link ID.</Alert>;
-	}
-
 	if (isLinkLoading) {
 		return (
 			<Group justify="center" py="xl">
@@ -203,6 +224,24 @@ export default function LinkDetailPage() {
 	const topBrowsers = summary?.topBrowsers ?? [];
 	const topReferrers = summary?.topReferrers ?? [];
 
+	// Dynamic chart title based on date selection
+	const clicksTimelineTitle = useMemo(() => {
+		if (startDate && endDate) {
+			const start = new Date(startDate).toLocaleDateString("en-US", {
+				month: "short",
+				day: "numeric",
+			});
+			const end = new Date(endDate).toLocaleDateString("en-US", {
+				month: "short",
+				day: "numeric",
+			});
+			return `Clicks Over Time (${start} - ${end})`;
+		}
+		return isPro
+			? "Clicks Over Time (Last 90 days)"
+			: "Clicks Over Time (Last 7 days)";
+	}, [startDate, endDate, isPro]);
+
 	// Convert TopCountry to TopCountryData for heat map
 	const topCountriesData: TopCountryData[] = topCountries.map((c) => ({
 		country: c.country,
@@ -231,100 +270,114 @@ export default function LinkDetailPage() {
 				archiveLoading={archiveLoading}
 				rescanLoading={isRescanning}
 				deleteLoading={isDeleting}
+				dateRange={dateRange}
+				onDateRangeChange={handleDateRangeChange}
+				isPro={isPro}
 			/>
 
-			<SimpleGrid cols={{ base: 1, lg: 3 }} spacing="lg">
-				<Stack gap="lg" style={{ gridColumn: "span 2" }}>
-					{/* Summary Stats */}
-					<LinkStatsGrid link={link} summary={summaryQuery.data} />
+			<Grid gutter="lg">
+				{/* Sidebar - QR & Link Details (Order: 1st on mobile, 2nd on desktop) */}
+				<Grid.Col span={{ base: 12, lg: 4 }} order={{ base: 1, lg: 2 }}>
+					<Stack gap="md">
+						<LinkQrCard
+							link={link}
+							onGenerate={() => handleGenerateQr(link)}
+							loading={isQrLoading}
+						/>
+						<LinkScanDetails link={link} />
+						<LinkInfoGrid link={link} />
+					</Stack>
+				</Grid.Col>
 
-					{/* Clicks Timeline - Available to all */}
-					<ClicksTimelineChart
-						data={clicksByDate}
-						loading={summaryQuery.isLoading}
-						title={
-							isPro ? "Clicks Over Time (90 days)" : "Clicks Over Time (7 days)"
-						}
-					/>
+				{/* Analytics Content (Order: 2nd on mobile, 1st on desktop) */}
+				<Grid.Col span={{ base: 12, lg: 8 }} order={{ base: 2, lg: 1 }}>
+					<Stack gap="lg">
+						{/* Summary Stats */}
+						<LinkStatsGrid
+							link={link}
+							summary={summaryQuery.data}
+							loading={summaryQuery.isLoading || summaryQuery.isFetching}
+						/>
 
-					{/* Geographic Analytics */}
-					<SimpleGrid cols={{ base: 1, md: 2 }} spacing="md">
+						{/* Clicks Timeline - Available to all */}
+						<ClicksTimelineChart
+							data={clicksByDate}
+							loading={summaryQuery.isLoading || summaryQuery.isFetching}
+							title={clicksTimelineTitle}
+						/>
+
+						{/* Geographic Analytics */}
+						<SimpleGrid cols={{ base: 1, md: 2 }} spacing="md">
+							<ProFeatureGuard
+								isPro={isPro}
+								featureName="Geographic Heat Map"
+								upgradeMessage="Visualize your global reach with an interactive heat map showing click intensity by country."
+							>
+								<GeoHeatMap
+									data={topCountriesData}
+									loading={summaryQuery.isLoading || summaryQuery.isFetching}
+								/>
+							</ProFeatureGuard>
+
+							<TopCountriesTable
+								data={topCountries}
+								loading={summaryQuery.isLoading || summaryQuery.isFetching}
+								limit={isPro ? 10 : 5}
+							/>
+						</SimpleGrid>
+
+						{/* Device & Browser Analytics - PRO Only */}
 						<ProFeatureGuard
 							isPro={isPro}
-							featureName="Geographic Heat Map"
-							upgradeMessage="Visualize your global reach with an interactive heat map showing click intensity by country."
+							featureName="Device & Browser Analytics"
+							upgradeMessage="Understand your audience better with detailed device and browser breakdowns."
 						>
-							<GeoHeatMap
-								data={topCountriesData}
-								loading={summaryQuery.isLoading}
+							<SimpleGrid cols={{ base: 1, md: 2 }} spacing="md">
+								<AnalyticsPieChart
+									data={topDevices}
+									loading={summaryQuery.isLoading || summaryQuery.isFetching}
+									title="Device Breakdown"
+									emptyMessage="No device data available"
+								/>
+								<AnalyticsPieChart
+									data={topBrowsers}
+									loading={summaryQuery.isLoading || summaryQuery.isFetching}
+									title="Browser Breakdown"
+									emptyMessage="No browser data available"
+								/>
+							</SimpleGrid>
+						</ProFeatureGuard>
+
+						{/* Referrer Analytics - PRO Only */}
+						<ProFeatureGuard
+							isPro={isPro}
+							featureName="Traffic Sources"
+							upgradeMessage="Discover where your clicks are coming from with detailed referrer tracking."
+						>
+							<ReferrerBarChart
+								data={topReferrers}
+								loading={summaryQuery.isLoading || summaryQuery.isFetching}
+								limit={10}
 							/>
 						</ProFeatureGuard>
 
-						<TopCountriesTable
-							data={topCountries}
-							loading={summaryQuery.isLoading}
-							limit={isPro ? 10 : 3}
-						/>
-					</SimpleGrid>
-
-					{/* Device & Browser Analytics - PRO Only */}
-					<ProFeatureGuard
-						isPro={isPro}
-						featureName="Device & Browser Analytics"
-						upgradeMessage="Understand your audience better with detailed device and browser breakdowns."
-					>
-						<SimpleGrid cols={{ base: 1, md: 2 }} spacing="md">
-							<DevicePieChart
-								data={topDevices}
-								loading={summaryQuery.isLoading}
-							/>
-							<BrowserPieChart
-								data={topBrowsers}
-								loading={summaryQuery.isLoading}
-							/>
-						</SimpleGrid>
-					</ProFeatureGuard>
-
-					{/* Referrer Analytics - PRO Only */}
-					<ProFeatureGuard
-						isPro={isPro}
-						featureName="Traffic Sources"
-						upgradeMessage="Discover where your clicks are coming from with detailed referrer tracking."
-					>
-						<ReferrerBarChart
-							data={topReferrers}
-							loading={summaryQuery.isLoading}
-							limit={10}
-						/>
-					</ProFeatureGuard>
-
-					{/* Click Log Table - PRO Only */}
-					<ProFeatureGuard
-						isPro={isPro}
-						featureName="Click Log"
-						upgradeMessage="Access detailed click-level data with visitor information, device data, referrers, and UTM tracking."
-					>
-						<LinkAnalyticsTable
-							records={analyticsData}
-							page={page}
-							pageCount={analyticsMeta?.pageCount ?? 1}
-							onPageChange={setPage}
-							loading={analyticsQuery.isLoading}
+						{/* Click Log Table - PRO Only */}
+						<ProFeatureGuard
 							isPro={isPro}
-						/>
-					</ProFeatureGuard>
-				</Stack>
-
-				<Stack gap="md">
-					<LinkQrCard
-						link={link}
-						onGenerate={() => handleGenerateQr(link)}
-						loading={isQrLoading}
-					/>
-					<LinkScanDetails link={link} />
-					<LinkInfoGrid link={link} />
-				</Stack>
-			</SimpleGrid>
+							featureName="Click Log"
+							upgradeMessage="Access detailed click-level data with visitor information, device data, referrers, and UTM tracking."
+						>
+							<LinkAnalyticsTable
+								records={analyticsData}
+								page={page}
+								pageCount={analyticsMeta?.pageCount ?? 1}
+								onPageChange={setPage}
+								loading={analyticsQuery.isLoading || analyticsQuery.isFetching}
+							/>
+						</ProFeatureGuard>
+					</Stack>
+				</Grid.Col>
+			</Grid>
 
 			<EditLinkModal
 				link={link}

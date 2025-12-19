@@ -19,7 +19,7 @@ export function LinkScanDetails({
 			<Stack gap={4}>
 				{link.scanScore !== null && link.scanScore !== undefined && (
 					<Text size="sm" c="dimmed">
-						Score: {link.scanScore}
+						Score: {link.scanScore}/1
 					</Text>
 				)}
 				<Text size="sm" c="dimmed">
