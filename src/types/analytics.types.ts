@@ -145,6 +145,11 @@ export interface TopCountryData {
 	clicks: number;
 }
 
+export interface TopCityData {
+	city: string;
+	clicks: number;
+}
+
 /**
  * Geographic data point for heat map visualization
  * Extends TopCountryData with additional geographic metadata
@@ -197,6 +202,7 @@ export interface UserMonthlyAnalytics {
 	previousMonthClicks: number;
 	topLinks: TopLinkData[];
 	topCountries: TopCountryData[];
+	topCities: TopCityData[];
 	topDevices: TopDeviceData[];
 	topBrowsers: TopBrowserData[];
 	topOs: TopOSData[];
