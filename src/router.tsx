@@ -59,9 +59,10 @@ function AdminGuard({ children }: { children: React.ReactNode }) {
  *
  * Protected routes (require auth):
  * - /dashboard
- * - /dashboard/links/:id
- * - /dashboard/analytics
- * - /dashboard/analytics/:id
+ * - /dashboard/links/:id (Link details + analytics)
+ * - /dashboard/analytics/overview (Global analytics)
+ * - /dashboard/analytics/audience (Audience analytics)
+ * - /dashboard/analytics/geo (Geographic analytics)
  * - /dashboard/tags
  * - /dashboard/settings
  *
@@ -124,21 +125,45 @@ export const router = createBrowserRouter([
 			},
 			{
 				path: "/dashboard/analytics",
-				lazy: async () => {
-					nprogress.start();
-					const module = await import("@/pages/dashboard/AnalyticsPage");
-					nprogress.complete();
-					return { Component: module.default };
-				},
-			},
-			{
-				path: "/dashboard/analytics/:id",
-				lazy: async () => {
-					nprogress.start();
-					const module = await import("@/pages/dashboard/LinkAnalyticsPage");
-					nprogress.complete();
-					return { Component: module.default };
-				},
+				children: [
+					{
+						index: true,
+						element: <Navigate to="/dashboard/analytics/overview" replace />,
+					},
+					{
+						path: "overview",
+						lazy: async () => {
+							nprogress.start();
+							const module = await import(
+								"@/pages/dashboard/analytics/AnalyticsOverviewPage"
+							);
+							nprogress.complete();
+							return { Component: module.default };
+						},
+					},
+					{
+						path: "audience",
+						lazy: async () => {
+							nprogress.start();
+							const module = await import(
+								"@/pages/dashboard/analytics/AnalyticsAudiencePage"
+							);
+							nprogress.complete();
+							return { Component: module.default };
+						},
+					},
+					{
+						path: "geo",
+						lazy: async () => {
+							nprogress.start();
+							const module = await import(
+								"@/pages/dashboard/analytics/AnalyticsGeographyPage"
+							);
+							nprogress.complete();
+							return { Component: module.default };
+						},
+					},
+				],
 			},
 			{
 				path: "/dashboard/tags",

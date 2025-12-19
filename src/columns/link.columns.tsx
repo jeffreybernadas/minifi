@@ -10,7 +10,6 @@ import {
 import {
 	IconArchive,
 	IconArchiveOff,
-	IconChartBar,
 	IconDotsVertical,
 	IconExternalLink,
 	IconEye,
@@ -138,16 +137,6 @@ export const getLinkColumns = ({
 						onClick={() => onNavigate(`/dashboard/links/${link.id}`)}
 					>
 						<IconEye size={16} />
-					</ActionIcon>
-				</Tooltip>
-
-				<Tooltip label="View Analytics">
-					<ActionIcon
-						variant="subtle"
-						color="blue"
-						onClick={() => onNavigate(`/dashboard/analytics/${link.id}`)}
-					>
-						<IconChartBar size={16} />
 					</ActionIcon>
 				</Tooltip>
 

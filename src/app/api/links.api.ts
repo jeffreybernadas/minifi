@@ -10,6 +10,7 @@ import type {
 	PaginatedResponse,
 	QrCodeResponse,
 	UpdateLinkDto,
+	UserMonthlyAnalytics,
 } from "@/types";
 import { baseApi } from "./base.api";
 
@@ -206,6 +207,23 @@ export const linksApi = baseApi.injectEndpoints({
 			query: (id) => `/links/${id}/analytics/summary`,
 			providesTags: (_result, _error, id) => [{ type: "LinkAnalytics", id }],
 		}),
+
+		/**
+		 * Get global analytics overview
+		 * Endpoint: GET /links/analytics/overview?startDate=&endDate=
+		 * Returns aggregated analytics across all user's links
+		 */
+		getGlobalAnalytics: builder.query<
+			UserMonthlyAnalytics,
+			{ startDate?: string; endDate?: string } | undefined
+		>({
+			query: (params) => ({
+				url: "/links/analytics/overview",
+				method: "GET",
+				params: params || {},
+			}),
+			providesTags: ["LinkAnalytics"],
+		}),
 	}),
 });
 
@@ -225,4 +243,5 @@ export const {
 	// Analytics
 	useGetLinkAnalyticsQuery,
 	useGetAnalyticsSummaryQuery,
+	useGetGlobalAnalyticsQuery,
 } = linksApi;

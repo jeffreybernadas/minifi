@@ -17,10 +17,9 @@ const userNavigation = [
 		label: "Analytics",
 		icon: IconPresentationAnalytics,
 		links: [
-			{ label: "Overview", link: "/dashboard/analytics" },
-			{ label: "Click Analytics", link: "/dashboard/analytics/clicks" },
+			{ label: "Overview", link: "/dashboard/analytics/overview" },
+			{ label: "Audience", link: "/dashboard/analytics/audience" },
 			{ label: "Geographic Data", link: "/dashboard/analytics/geo" },
-			{ label: "Device Analytics", link: "/dashboard/analytics/devices" },
 		],
 	},
 	{ label: "Tags", icon: IconTags, link: "/dashboard/tags" },
