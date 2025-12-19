@@ -40,6 +40,7 @@ import {
 	LinkQrCard,
 	LinkScanDetails,
 	LinkStatsGrid,
+	LinkTagsCard,
 } from "@/components/links";
 import { useAuth } from "@/hooks";
 import type { Link, TopCountryData } from "@/types";
@@ -279,6 +280,7 @@ export default function LinkDetailPage() {
 							onGenerate={() => handleGenerateQr(link)}
 							loading={isQrLoading}
 						/>
+						<LinkTagsCard link={link} />
 						<LinkScanDetails link={link} />
 						<LinkInfoGrid link={link} />
 					</Stack>

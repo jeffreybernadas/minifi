@@ -24,6 +24,7 @@ import {
 } from "@tabler/icons-react";
 import { Controller, useForm } from "react-hook-form";
 import { useCreateLinkMutation } from "@/app/api/links.api";
+import { TagPicker } from "@/components/tags";
 import { useAuth } from "@/hooks";
 import {
 	type CreateLinkFormValues,
@@ -39,7 +40,10 @@ export interface CreateLinkModalProps {
 /**
  * Modal for creating new shortened links
  */
-export function CreateLinkModal({ opened, onClose }: CreateLinkModalProps) {
+export function CreateLinkModal({
+	opened,
+	onClose,
+}: Readonly<CreateLinkModalProps>) {
 	const { isPro } = useAuth();
 	const [createLink, { isLoading }] = useCreateLinkMutation();
 
@@ -62,6 +66,7 @@ export function CreateLinkModal({ opened, onClose }: CreateLinkModalProps) {
 			clickLimit: null,
 			isOneTime: false,
 			notes: "",
+			tagIds: [],
 		},
 	});
 
@@ -84,6 +89,8 @@ export function CreateLinkModal({ opened, onClose }: CreateLinkModalProps) {
 				clickLimit: values.clickLimit ?? undefined,
 				isOneTime: values.isOneTime || undefined,
 				notes: values.notes || undefined,
+				tagIds:
+					values.tagIds && values.tagIds.length > 0 ? values.tagIds : undefined,
 			};
 
 			await createLink(payload).unwrap();
@@ -295,6 +302,20 @@ export function CreateLinkModal({ opened, onClose }: CreateLinkModalProps) {
 								rows={3}
 								error={errors.notes?.message}
 								{...register("notes")}
+							/>
+
+							<Controller
+								name="tagIds"
+								control={control}
+								render={({ field, fieldState }) => (
+									<TagPicker
+										value={field.value || []}
+										onChange={field.onChange}
+										label="Tags"
+										description="Organize your links with tags"
+										error={fieldState.error?.message}
+									/>
+								)}
 							/>
 						</Stack>
 					</Tabs.Panel>

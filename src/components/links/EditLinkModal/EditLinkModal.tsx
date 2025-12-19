@@ -27,6 +27,7 @@ import {
 import { useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { useUpdateLinkMutation } from "@/app/api/links.api";
+import { TagPicker } from "@/components/tags";
 import { useAuth } from "@/hooks";
 import { type EditLinkFormValues, editLinkSchema } from "@/schemas/link.schema";
 import type { Link } from "@/types";
@@ -69,6 +70,7 @@ export function EditLinkModal({
 			clickLimit: null,
 			isOneTime: false,
 			notes: "",
+			tagIds: [],
 		},
 	});
 
@@ -92,6 +94,7 @@ export function EditLinkModal({
 				clickLimit: link.clickLimit ?? null,
 				isOneTime: link.isOneTime ?? false,
 				notes: link.notes ?? "",
+				tagIds: link.tags?.map((tag) => tag.id) ?? [],
 			});
 		}
 	}, [link, opened, reset]);
@@ -128,6 +131,10 @@ export function EditLinkModal({
 			}
 			if (dirtyFields.expiresAt) {
 				payload.expiresAt = values.expiresAt?.toISOString() ?? null;
+			}
+
+			if (dirtyFields.tagIds) {
+				payload.tagIds = values.tagIds;
 			}
 
 			if (Object.keys(payload).length === 0) {
@@ -387,6 +394,20 @@ export function EditLinkModal({
 								rows={3}
 								error={errors.notes?.message}
 								{...register("notes")}
+							/>
+
+							<Controller
+								name="tagIds"
+								control={control}
+								render={({ field, fieldState }) => (
+									<TagPicker
+										value={field.value || []}
+										onChange={field.onChange}
+										label="Tags"
+										description="Organize your links with tags"
+										error={fieldState.error?.message}
+									/>
+								)}
 							/>
 						</Stack>
 					</Tabs.Panel>
