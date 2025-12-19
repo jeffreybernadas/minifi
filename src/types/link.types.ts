@@ -252,15 +252,6 @@ export interface TopDevice {
 }
 
 /**
- * Top operating system in analytics
- * Used for OS breakdown charts
- */
-export interface TopOS {
-	os: string;
-	count: number;
-}
-
-/**
  * Top browser in link analytics summary
  */
 export interface TopBrowser {

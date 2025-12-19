@@ -1,6 +1,6 @@
 import { Box, Collapse, Group, ThemeIcon, UnstyledButton } from "@mantine/core";
 import { IconChevronRight } from "@tabler/icons-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import classes from "./NavbarLinksGroup.module.css";
 
@@ -23,7 +23,15 @@ export function LinksGroup({
 }: LinksGroupProps) {
 	const location = useLocation();
 	const hasLinks = Array.isArray(links) && links.length > 0;
-	const [opened, setOpened] = useState(initiallyOpened || false);
+	const isActiveGroup =
+		hasLinks && links.some((item) => location.pathname === item.link);
+	const [opened, setOpened] = useState(initiallyOpened || isActiveGroup);
+
+	useEffect(() => {
+		if (isActiveGroup) {
+			setOpened(true);
+		}
+	}, [isActiveGroup]);
 
 	const items = (hasLinks ? links : []).map((item) => (
 		<Link
