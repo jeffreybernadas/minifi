@@ -114,7 +114,12 @@ export function CreateTagModal({
 			size="md"
 			radius="md"
 		>
-			<form onSubmit={onSubmit}>
+			<form
+				onSubmit={(e) => {
+					e.stopPropagation();
+					void onSubmit(e);
+				}}
+			>
 				<Stack gap="md">
 					<TextInput
 						label="Tag Name"

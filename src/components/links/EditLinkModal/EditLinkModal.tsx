@@ -133,7 +133,14 @@ export function EditLinkModal({
 				payload.expiresAt = values.expiresAt?.toISOString() ?? null;
 			}
 
-			if (dirtyFields.tagIds) {
+			// Check for tag changes manually since dirtyFields can be unreliable for arrays
+			const originalTagIds = (link.tags?.map((t) => t.id) ?? []).sort();
+			const newTagIds = (values.tagIds ?? []).sort();
+			const tagsChanged =
+				originalTagIds.length !== newTagIds.length ||
+				!originalTagIds.every((id, index) => id === newTagIds[index]);
+
+			if (tagsChanged) {
 				payload.tagIds = values.tagIds;
 			}
 

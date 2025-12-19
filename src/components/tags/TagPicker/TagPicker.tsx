@@ -1,6 +1,7 @@
 import { MultiSelect, Button, Group, Stack } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { IconPlus } from "@tabler/icons-react";
+import { useMemo, useState } from "react";
 import { useGetTagsQuery } from "@/app/api/tags.api";
 import { CreateTagModal } from "../CreateTagModal/CreateTagModal";
 import { TagBadge } from "@/components/ui";
@@ -37,20 +38,30 @@ export function TagPicker({
 	description,
 }: Readonly<TagPickerProps>) {
 	const { data: tags = [], isLoading } = useGetTagsQuery();
+	const [tempTags, setTempTags] = useState<Tag[]>([]);
 	const [
 		createModalOpened,
 		{ open: openCreateModal, close: closeCreateModal },
 	] = useDisclosure(false);
 
+	// Combine API tags with locally created tags (optimistic update)
+	const allTags = useMemo(() => {
+		const tagMap = new Map(tags.map((t) => [t.id, t]));
+		tempTags.forEach((t) => {
+			tagMap.set(t.id, t);
+		});
+		return Array.from(tagMap.values());
+	}, [tags, tempTags]);
+
 	// Convert tags to MultiSelect data format
-	const selectData = tags.map((tag) => ({
+	const selectData = allTags.map((tag) => ({
 		value: tag.id,
 		label: tag.name,
 		tag, // Store tag object for rendering
 	}));
 
 	// Find selected tags for rendering
-	const selectedTags = tags.filter((tag) => value.includes(tag.id));
+	const selectedTags = allTags.filter((tag) => value.includes(tag.id));
 
 	return (
 		<>
@@ -66,6 +77,7 @@ export function TagPicker({
 					onChange={onChange}
 					searchable
 					clearable
+					hidePickedOptions
 					maxDropdownHeight={200}
 					renderOption={({ option }) => {
 						const tagData = (option as unknown as { tag: Tag }).tag;
@@ -111,6 +123,7 @@ export function TagPicker({
 				opened={createModalOpened}
 				onClose={closeCreateModal}
 				onSuccess={(newTag) => {
+					setTempTags((prev) => [...prev, newTag]);
 					onChange([...value, newTag.id]);
 				}}
 			/>
