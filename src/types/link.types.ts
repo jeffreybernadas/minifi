@@ -73,6 +73,7 @@ export interface Link {
 	uniqueClickCount: number;
 	lastClickedAt?: string | null;
 	qrCodeUrl?: string | null;
+	tags?: Tag[]; // Tags assigned to this link
 	createdAt: string;
 	updatedAt: string;
 }

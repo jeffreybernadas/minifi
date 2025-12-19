@@ -16,5 +16,7 @@ export type { StatsCardProps } from "./StatsCard";
 export { StatsCard } from "./StatsCard";
 export type { LinkStatusBadgeProps, ScanStatusBadgeProps } from "./StatusBadge";
 export { LinkStatusBadge, ScanStatusBadge } from "./StatusBadge";
+export type { TagBadgeProps } from "./TagBadge";
+export { TagBadge } from "./TagBadge";
 export { UserBadges } from "./UserBadges";
 export { UserButton } from "./UserButton";
