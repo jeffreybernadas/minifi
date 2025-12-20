@@ -22,7 +22,6 @@ export interface UserProfile {
 
 	// Subscription tier & role
 	userType: "GUEST" | "FREE" | "PRO";
-	isAdmin: boolean;
 
 	// Metadata
 	createdAt: string;

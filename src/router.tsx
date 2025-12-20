@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import { useAppSelector } from "@/app/hooks";
 import { AppShell } from "@/components/layout";
+import { useAuth } from "./hooks";
 
 /**
  * Auth Guard - Redirects to landing if not authenticated
@@ -27,7 +28,8 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
  * Admin Guard - Redirects to dashboard if not admin
  */
 function AdminGuard({ children }: { children: React.ReactNode }) {
-	const { isAuthenticated, isInitialized, user } = useAppSelector(
+	const { isAdmin } = useAuth();
+	const { isAuthenticated, isInitialized } = useAppSelector(
 		(state) => state.auth,
 	);
 
@@ -38,10 +40,6 @@ function AdminGuard({ children }: { children: React.ReactNode }) {
 	if (!isAuthenticated) {
 		return <Navigate to="/" replace />;
 	}
-
-	const isAdmin = user?.roles.some(
-		(role) => role === "admin" || role === "superadmin",
-	);
 
 	if (!isAdmin) {
 		return <Navigate to="/dashboard" replace />;

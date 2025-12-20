@@ -5,3 +5,4 @@ export * from "./redirect.api";
 export * from "./subscription.api";
 export * from "./tags.api";
 export * from "./user.api";
+export * from "./chat.api";

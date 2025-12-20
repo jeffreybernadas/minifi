@@ -14,6 +14,7 @@ import {
 import storage from "redux-persist/lib/storage";
 import authReducer from "@/features/auth/auth.slice";
 import themeReducer from "@/features/theme/theme.slice";
+import chatReducer from "@/features/chat/chat.slice";
 import { baseApi, publicApi } from "./api/base.api";
 
 /**
@@ -24,6 +25,7 @@ const rootReducer = combineReducers({
 	[publicApi.reducerPath]: publicApi.reducer,
 	auth: authReducer,
 	theme: themeReducer,
+	chat: chatReducer,
 });
 
 // Infer root state type from rootReducer

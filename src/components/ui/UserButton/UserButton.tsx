@@ -10,6 +10,7 @@ import { useGetUserProfileQuery } from "@/app/api/user.api";
 import { UserBadges } from "@/components/ui";
 import { keycloak } from "@/features/auth";
 import classes from "./UserButton.module.css";
+import { useAuth } from "@/hooks";
 
 interface UserButtonProps {
 	onNavigate?: () => void;
@@ -17,6 +18,7 @@ interface UserButtonProps {
 
 export function UserButton({ onNavigate }: UserButtonProps) {
 	const { data: profile } = useGetUserProfileQuery();
+	const { isAdmin } = useAuth();
 
 	return (
 		<Menu
@@ -47,7 +49,7 @@ export function UserButton({ onNavigate }: UserButtonProps) {
 								>
 									{profile?.name || "Loading..."}
 								</Text>
-								<UserBadges isAdmin={profile?.isAdmin} size="xs" />
+								<UserBadges isAdmin={isAdmin} size="xs" />
 							</Group>
 
 							<Group gap={4} wrap="nowrap">

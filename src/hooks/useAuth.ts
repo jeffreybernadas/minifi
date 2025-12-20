@@ -42,7 +42,6 @@ export const useAuth = (): UseAuthReturn => {
 		const cacheEntry = state.api.queries["getUserProfile(undefined)"];
 		return cacheEntry?.status === "fulfilled"
 			? (cacheEntry.data as {
-					isAdmin: boolean;
 					userType: "GUEST" | "FREE" | "PRO";
 				})
 			: null;
@@ -50,7 +49,11 @@ export const useAuth = (): UseAuthReturn => {
 
 	// Extract values with fallbacks
 	const userType = profile?.userType ?? null;
-	const isAdmin = profile?.isAdmin ?? false;
+
+	const isAdmin =
+		auth.user?.roles.includes("admin") ||
+		auth.user?.roles.includes("superadmin") ||
+		false;
 
 	// Computed subscription tier checks
 	const isPro = userType === "PRO";

@@ -17,7 +17,6 @@ import {
 	IconUsers,
 } from "@tabler/icons-react";
 import { useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { useGetGlobalAnalyticsQuery } from "@/app/api/links.api";
 import {
 	AnalyticsEmptyState,
@@ -37,7 +36,6 @@ import { StatsCard } from "@/components/ui";
  * Route: /dashboard/analytics/overview
  */
 export default function AnalyticsOverviewPage() {
-	const navigate = useNavigate();
 	const { isPro } = useAuth();
 	const [dateRange, setDateRange] = useState<[string | null, string | null]>([
 		null,
