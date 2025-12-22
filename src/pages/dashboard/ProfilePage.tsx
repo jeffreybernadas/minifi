@@ -29,8 +29,10 @@ import {
 } from "@/constants/env.constant";
 import { type ProfileFormData, profileSchema } from "@/schemas/profile.schema";
 import { getErrorMessage } from "@/types/api.types";
+import { useAuth } from "@/hooks";
 
 export default function ProfilePage() {
+	const { isAdmin } = useAuth();
 	const {
 		data: profile,
 		isLoading,
@@ -182,11 +184,7 @@ export default function ProfilePage() {
 		<Stack gap="lg">
 			<Group justify="space-between" align="center">
 				<Title order={1}>Profile</Title>
-				<UserBadges
-					isAdmin={profile?.isAdmin}
-					userType={profile?.userType}
-					size="lg"
-				/>
+				<UserBadges isAdmin={isAdmin} userType={profile?.userType} size="lg" />
 			</Group>
 
 			<Paper shadow="sm" p="xl" withBorder pos="relative">

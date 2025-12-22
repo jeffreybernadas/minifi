@@ -228,6 +228,15 @@ export const router = createBrowserRouter([
 					return { Component: module.default };
 				},
 			},
+			{
+				path: "/admin/chat",
+				lazy: async () => {
+					nprogress.start();
+					const module = await import("@/pages/admin/AdminChatPage");
+					nprogress.complete();
+					return { Component: module.default };
+				},
+			},
 		],
 	},
 

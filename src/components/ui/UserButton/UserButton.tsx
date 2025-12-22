@@ -61,7 +61,9 @@ export function UserButton({ onNavigate }: UserButtonProps) {
 								>
 									{profile?.email || "Loading..."}
 								</Text>
-								<UserBadges userType={profile?.userType} size="xs" />
+								{!isAdmin && (
+									<UserBadges userType={profile?.userType} size="xs" />
+								)}
 							</Group>
 						</div>
 

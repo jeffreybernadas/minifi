@@ -6,7 +6,10 @@ interface ChatState {
 	activeChatId: string | null;
 	activeChat: Chat | null;
 	typingUsers: { [userId: string]: boolean };
-	unreadCount: number;
+	// For DIRECT chats: tracks if the other user (not current user) is online
+	// Key: chatId, Value: userId of the other user who is online (or null if offline)
+	otherUserOnline: { [chatId: string]: string | null };
+	connectionStatus: "connected" | "disconnected" | "connecting";
 }
 
 const initialState: ChatState = {
@@ -14,7 +17,8 @@ const initialState: ChatState = {
 	activeChatId: null,
 	activeChat: null,
 	typingUsers: {},
-	unreadCount: 0,
+	otherUserOnline: {},
+	connectionStatus: "disconnected",
 };
 
 const chatSlice = createSlice({
@@ -42,11 +46,19 @@ const chatSlice = createSlice({
 				delete state.typingUsers[userId];
 			}
 		},
-		incrementUnreadCount: (state) => {
-			state.unreadCount += 1;
+		// Set the other user's online status for a DIRECT chat
+		// In DIRECT chats, there's only one "other user" to track
+		setOtherUserOnline: (
+			state,
+			action: PayloadAction<{ chatId: string; userId: string | null }>,
+		) => {
+			state.otherUserOnline[action.payload.chatId] = action.payload.userId;
 		},
-		resetUnreadCount: (state) => {
-			state.unreadCount = 0;
+		setConnectionStatus: (
+			state,
+			action: PayloadAction<"connected" | "disconnected" | "connecting">,
+		) => {
+			state.connectionStatus = action.payload;
 		},
 	},
 });
@@ -56,8 +68,8 @@ export const {
 	setChatOpen,
 	setActiveChat,
 	setUserTyping,
-	incrementUnreadCount,
-	resetUnreadCount,
+	setOtherUserOnline,
+	setConnectionStatus,
 } = chatSlice.actions;
 
 export default chatSlice.reducer;

@@ -33,6 +33,7 @@ const adminNavigation = [
 			{ label: "Dashboard", link: "/admin" },
 			{ label: "Users", link: "/admin/users" },
 			{ label: "Links", link: "/admin/links" },
+			{ label: "Chat", link: "/admin/chat" },
 		],
 	},
 ];
@@ -41,7 +42,7 @@ interface SidebarProps {
 	onCloseMobile?: () => void;
 }
 
-export function Sidebar({ onCloseMobile }: SidebarProps) {
+export function Sidebar({ onCloseMobile }: Readonly<SidebarProps>) {
 	const { isAdmin } = useAuth();
 
 	// Combine user navigation with admin navigation if user is admin

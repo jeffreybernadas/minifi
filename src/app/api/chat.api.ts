@@ -36,6 +36,7 @@ export interface CursorPaginatedResponse<T> {
 
 /**
  * Chat API slice - REST endpoints for chat management
+ * Uses optimistic updates for instant UI feedback
  */
 export const chatApi = baseApi.injectEndpoints({
 	endpoints: (builder) => ({
@@ -50,7 +51,7 @@ export const chatApi = baseApi.injectEndpoints({
 				method: "POST",
 				body,
 			}),
-			invalidatesTags: ["Chat"],
+			invalidatesTags: [{ type: "Chat", id: "LIST" }],
 		}),
 
 		/**
@@ -58,10 +59,11 @@ export const chatApi = baseApi.injectEndpoints({
 		 */
 		getUserChats: builder.query<Chat[], void>({
 			query: () => "/chat",
-			providesTags: (result) =>
-				result
+			transformResponse: (response: { data: Chat[] }) => response.data,
+			providesTags: (chats) =>
+				chats
 					? [
-							...result.map(({ id }) => ({ type: "Chat" as const, id })),
+							...chats.map(({ id }) => ({ type: "Chat" as const, id })),
 							{ type: "Chat", id: "LIST" },
 						]
 					: [{ type: "Chat", id: "LIST" }],
@@ -79,7 +81,6 @@ export const chatApi = baseApi.injectEndpoints({
 
 		/**
 		 * Fetch chat message history (Cursor-based)
-		 * Uses onCacheEntryAdded to listen for socket events and update cache
 		 */
 		getChatMessages: builder.query<
 			CursorPaginatedResponse<Message>,
@@ -92,33 +93,105 @@ export const chatApi = baseApi.injectEndpoints({
 			providesTags: (_result, _error, { chatId }) => [
 				{ type: "Message", id: `LIST:${chatId}` },
 			],
-			// Real-time updates via Socket.IO are handled in the component via useSocket
-			// or here if we moved the socket logic entirely into the API.
-			// For now, we'll keep the socket logic separate or integrate it later
-			// if we want pure cache-based updates.
 		}),
 
 		/**
-		 * Send a message
+		 * Send a message - with optimistic update
 		 */
 		sendMessage: builder.mutation<
 			Message,
-			{ chatId: string; data: SendMessageDto }
+			{
+				chatId: string;
+				data: SendMessageDto;
+				tempId?: string;
+				senderId?: string;
+			}
 		>({
 			query: ({ chatId, data }) => ({
 				url: `/chat/${chatId}/messages`,
 				method: "POST",
 				body: data,
 			}),
-			// Optimistic update could be added here
-			invalidatesTags: (_result, _error, { chatId }) => [
-				{ type: "Message", id: `LIST:${chatId}` },
-				{ type: "Chat", id: chatId }, // Update lastMessageAt
-			],
+			// Optimistic update - show message immediately
+			async onQueryStarted(
+				{ chatId, data, tempId, senderId },
+				{ dispatch, queryFulfilled, getState },
+			) {
+				// Get reply context from cache if replying
+				let replyTo: Message["replyTo"] = null;
+				if (data.replyToId) {
+					// eslint-disable-next-line @typescript-eslint/no-explicit-any
+					const state = getState() as any;
+					const messagesResult = chatApi.endpoints.getChatMessages.select({
+						chatId,
+					})(state);
+					const replyTarget = messagesResult.data?.data.find(
+						(m: Message) => m.id === data.replyToId,
+					);
+					if (replyTarget) {
+						replyTo = {
+							id: replyTarget.id,
+							content: replyTarget.content,
+							senderId: replyTarget.senderId,
+							isDeleted: replyTarget.isDeleted,
+						};
+					}
+				}
+
+				// Create temporary message for optimistic update
+				const tempMessage: Message = {
+					id: tempId || `temp-${Date.now()}`,
+					chatId,
+					senderId: senderId || "",
+					content: data.content,
+					isEdited: false,
+					isDeleted: false,
+					createdAt: new Date().toISOString(),
+					updatedAt: new Date().toISOString(),
+					replyToId: data.replyToId || null,
+					replyTo,
+				};
+
+				// Optimistically add message to cache
+				const patchResult = dispatch(
+					chatApi.util.updateQueryData(
+						"getChatMessages",
+						{ chatId },
+						(draft) => {
+							draft.data.push(tempMessage);
+							draft.meta.totalItems += 1;
+						},
+					),
+				);
+
+				try {
+					// Wait for actual response
+					const { data: realMessage } = await queryFulfilled;
+
+					// Replace temp message with real one
+					dispatch(
+						chatApi.util.updateQueryData(
+							"getChatMessages",
+							{ chatId },
+							(draft) => {
+								const index = draft.data.findIndex(
+									(m) => m.id === tempMessage.id,
+								);
+								if (index !== -1) {
+									draft.data[index] = realMessage;
+								}
+							},
+						),
+					);
+				} catch {
+					// Rollback on error
+					patchResult.undo();
+				}
+			},
 		}),
 
 		/**
-		 * Edit a message
+		 * Edit a message - with optimistic update
 		 */
 		updateMessage: builder.mutation<
 			Message,
@@ -129,13 +202,38 @@ export const chatApi = baseApi.injectEndpoints({
 				method: "PUT",
 				body: data,
 			}),
-			invalidatesTags: (_result, _error, { chatId }) => [
-				{ type: "Message", id: `LIST:${chatId}` },
-			],
+			// Optimistic update
+			async onQueryStarted(
+				{ chatId, messageId, data },
+				{ dispatch, queryFulfilled },
+			) {
+				// Optimistically update message in cache
+				const patchResult = dispatch(
+					chatApi.util.updateQueryData(
+						"getChatMessages",
+						{ chatId },
+						(draft) => {
+							const message = draft.data.find((m) => m.id === messageId);
+							if (message) {
+								message.content = data.content;
+								message.isEdited = true;
+								message.updatedAt = new Date().toISOString();
+							}
+						},
+					),
+				);
+
+				try {
+					await queryFulfilled;
+				} catch {
+					// Rollback on error
+					patchResult.undo();
+				}
+			},
 		}),
 
 		/**
-		 * Delete a message
+		 * Delete a message - with optimistic update
 		 */
 		deleteMessage: builder.mutation<
 			Message,
@@ -145,9 +243,33 @@ export const chatApi = baseApi.injectEndpoints({
 				url: `/chat/${chatId}/messages/${messageId}`,
 				method: "DELETE",
 			}),
-			invalidatesTags: (_result, _error, { chatId }) => [
-				{ type: "Message", id: `LIST:${chatId}` },
-			],
+			// Optimistic update - mark as deleted immediately
+			async onQueryStarted(
+				{ chatId, messageId },
+				{ dispatch, queryFulfilled },
+			) {
+				// Optimistically mark message as deleted
+				const patchResult = dispatch(
+					chatApi.util.updateQueryData(
+						"getChatMessages",
+						{ chatId },
+						(draft) => {
+							const message = draft.data.find((m) => m.id === messageId);
+							if (message) {
+								message.isDeleted = true;
+								message.updatedAt = new Date().toISOString();
+							}
+						},
+					),
+				);
+
+				try {
+					await queryFulfilled;
+				} catch {
+					// Rollback on error
+					patchResult.undo();
+				}
+			},
 		}),
 	}),
 });

@@ -20,7 +20,7 @@ export function UserBadges({
 	isAdmin,
 	userType,
 	size = "xs",
-}: UserBadgesProps) {
+}: Readonly<UserBadgesProps>) {
 	if (!isAdmin && !userType) return null;
 
 	const iconSize = iconSizes[size] || 12;
@@ -32,7 +32,7 @@ export function UserBadges({
 					ADMIN
 				</Badge>
 			)}
-			{userType && (
+			{userType && !isAdmin && (
 				<Badge
 					size={size}
 					color={userType === "PRO" ? "violet" : "gray"}

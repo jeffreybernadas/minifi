@@ -2,6 +2,7 @@ import { Container, AppShell as MantineAppShell } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { Outlet } from "react-router-dom";
 import { useGetUserProfileQuery } from "@/app/api/user.api";
+import { ChatWidget } from "@/components/chat";
 import { Footer } from "../Footer";
 import { Header } from "../Header";
 import { Sidebar } from "../Sidebar";
@@ -50,9 +51,12 @@ export function AppShell({ withSidebar = false }: AppShellProps) {
 			</MantineAppShell.Header>
 
 			{withSidebar && (
-				<MantineAppShell.Navbar>
-					<Sidebar onCloseMobile={closeMobile} />
-				</MantineAppShell.Navbar>
+				<>
+					<MantineAppShell.Navbar>
+						<Sidebar onCloseMobile={closeMobile} />
+					</MantineAppShell.Navbar>
+					<ChatWidget />
+				</>
 			)}
 
 			<MantineAppShell.Main>

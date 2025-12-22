@@ -1,7 +1,18 @@
 export interface ChatMember {
+	id: string;
 	userId: string;
-	role: "admin" | "member";
 	joinedAt: string;
+	displayName?: string | null;
+	email?: string | null;
+	avatarUrl?: string | null;
+}
+
+export interface LastMessage {
+	id: string;
+	content: string;
+	senderId: string;
+	isDeleted: boolean;
+	createdAt: string;
 }
 
 export interface Chat {
@@ -12,6 +23,15 @@ export interface Chat {
 	members?: ChatMember[];
 	createdAt: string;
 	updatedAt: string;
+	lastMessage?: LastMessage | null;
+	unreadCount?: number;
+}
+
+export interface ReplyTo {
+	id: string;
+	content: string;
+	senderId: string;
+	isDeleted: boolean;
 }
 
 export interface Message {
@@ -23,8 +43,11 @@ export interface Message {
 	isDeleted: boolean;
 	createdAt: string;
 	updatedAt: string;
+	replyToId?: string | null;
+	replyTo?: ReplyTo | null;
 }
 
 export interface SendMessageDto {
 	content: string;
+	replyToId?: string;
 }
