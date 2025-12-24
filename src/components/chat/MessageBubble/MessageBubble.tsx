@@ -19,9 +19,9 @@ import {
 	IconCornerUpLeft,
 } from "@tabler/icons-react";
 import { useState } from "react";
+import TimeAgo from "react-timeago";
 import type { Message } from "@/types";
 import { useAuth } from "@/hooks";
-import { formatTime } from "@/utils/time.util";
 
 export interface MessageBubbleProps {
 	message: Message;
@@ -30,6 +30,10 @@ export interface MessageBubbleProps {
 	onDelete?: (messageId: string) => void;
 	onReply?: (message: Message) => void;
 	chatId: string;
+	/** Display name for the sender (for non-current-user messages) */
+	senderName?: string;
+	/** Avatar URL for the sender (for non-current-user messages) */
+	senderAvatarUrl?: string | null;
 }
 
 function MessageMenu({
@@ -87,6 +91,8 @@ export function MessageBubble({
 	onDelete,
 	onReply,
 	chatId: _chatId,
+	senderName,
+	senderAvatarUrl,
 }: Readonly<MessageBubbleProps>) {
 	const { user } = useAuth();
 	const isMe = message.senderId === user?.id;
@@ -120,8 +126,14 @@ export function MessageBubble({
 				w="100%"
 			>
 				{!isMe && showAvatar && (
-					<Avatar src={null} alt="Support" radius="xl" size="sm" color="gray">
-						S
+					<Avatar
+						src={senderAvatarUrl}
+						alt={senderName || "Support"}
+						radius="xl"
+						size="sm"
+						color="gray"
+					>
+						{(senderName || "S").charAt(0).toUpperCase()}
 					</Avatar>
 				)}
 				{!isMe && !showAvatar && <div style={{ width: 26 }} />}
@@ -145,7 +157,7 @@ export function MessageBubble({
 						</Paper>
 					</Flex>
 					<Text size="xs" c="dimmed" ta={isMe ? "right" : "left"}>
-						{formatTime(message.createdAt)}
+						<TimeAgo date={message.createdAt} live />
 					</Text>
 				</Stack>
 			</Group>
@@ -161,9 +173,15 @@ export function MessageBubble({
 			style={{ position: "relative" }}
 		>
 			{!isMe && showAvatar && (
-				<Tooltip label="Support Agent" zIndex={1001}>
-					<Avatar src={null} alt="Support" radius="xl" size="sm" color="blue">
-						S
+				<Tooltip label={senderName || "Support Agent"} zIndex={1001}>
+					<Avatar
+						src={senderAvatarUrl}
+						alt={senderName || "Support"}
+						radius="xl"
+						size="sm"
+						color="blue"
+					>
+						{(senderName || "S").charAt(0).toUpperCase()}
 					</Avatar>
 				</Tooltip>
 			)}
@@ -285,7 +303,7 @@ export function MessageBubble({
 				</Flex>
 				<Group gap={4} justify={isMe ? "flex-end" : "flex-start"}>
 					<Text size="xs" c="dimmed">
-						{formatTime(message.createdAt)}
+						<TimeAgo date={message.createdAt} live />
 					</Text>
 					{message.isEdited && !isEditing && (
 						<Tooltip

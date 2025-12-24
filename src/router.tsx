@@ -6,6 +6,24 @@ import { AppShell } from "@/components/layout";
 import { useAuth } from "./hooks";
 
 /**
+ * Helper to create lazy route with nprogress
+ * Uses try/finally to ensure progress always completes
+ */
+const lazyLoad = (
+	importFn: () => Promise<{ default: React.ComponentType }>,
+) => {
+	return async () => {
+		nprogress.start();
+		try {
+			const module = await importFn();
+			return { Component: module.default };
+		} finally {
+			nprogress.complete();
+		}
+	};
+};
+
+/**
  * Auth Guard - Redirects to landing if not authenticated
  */
 function AuthGuard({ children }: { children: React.ReactNode }) {
@@ -76,21 +94,11 @@ export const router = createBrowserRouter([
 		children: [
 			{
 				path: "/",
-				lazy: async () => {
-					nprogress.start();
-					const module = await import("@/pages/LandingPage");
-					nprogress.complete();
-					return { Component: module.default };
-				},
+				lazy: lazyLoad(() => import("@/pages/LandingPage")),
 			},
 			{
 				path: "/r/:code",
-				lazy: async () => {
-					nprogress.start();
-					const module = await import("@/pages/RedirectPage");
-					nprogress.complete();
-					return { Component: module.default };
-				},
+				lazy: lazyLoad(() => import("@/pages/RedirectPage")),
 			},
 		],
 	},
@@ -105,21 +113,11 @@ export const router = createBrowserRouter([
 		children: [
 			{
 				path: "/dashboard",
-				lazy: async () => {
-					nprogress.start();
-					const module = await import("@/pages/dashboard/DashboardPage");
-					nprogress.complete();
-					return { Component: module.default };
-				},
+				lazy: lazyLoad(() => import("@/pages/dashboard/DashboardPage")),
 			},
 			{
 				path: "/dashboard/links/:id",
-				lazy: async () => {
-					nprogress.start();
-					const module = await import("@/pages/dashboard/LinkDetailPage");
-					nprogress.complete();
-					return { Component: module.default };
-				},
+				lazy: lazyLoad(() => import("@/pages/dashboard/LinkDetailPage")),
 			},
 			{
 				path: "/dashboard/analytics",
@@ -130,65 +128,36 @@ export const router = createBrowserRouter([
 					},
 					{
 						path: "overview",
-						lazy: async () => {
-							nprogress.start();
-							const module = await import(
-								"@/pages/dashboard/analytics/AnalyticsOverviewPage"
-							);
-							nprogress.complete();
-							return { Component: module.default };
-						},
+						lazy: lazyLoad(
+							() => import("@/pages/dashboard/analytics/AnalyticsOverviewPage"),
+						),
 					},
 					{
 						path: "audience",
-						lazy: async () => {
-							nprogress.start();
-							const module = await import(
-								"@/pages/dashboard/analytics/AnalyticsAudiencePage"
-							);
-							nprogress.complete();
-							return { Component: module.default };
-						},
+						lazy: lazyLoad(
+							() => import("@/pages/dashboard/analytics/AnalyticsAudiencePage"),
+						),
 					},
 					{
 						path: "geo",
-						lazy: async () => {
-							nprogress.start();
-							const module = await import(
-								"@/pages/dashboard/analytics/AnalyticsGeographyPage"
-							);
-							nprogress.complete();
-							return { Component: module.default };
-						},
+						lazy: lazyLoad(
+							() =>
+								import("@/pages/dashboard/analytics/AnalyticsGeographyPage"),
+						),
 					},
 				],
 			},
 			{
 				path: "/dashboard/tags",
-				lazy: async () => {
-					nprogress.start();
-					const module = await import("@/pages/dashboard/TagsPage");
-					nprogress.complete();
-					return { Component: module.default };
-				},
+				lazy: lazyLoad(() => import("@/pages/dashboard/TagsPage")),
 			},
 			{
 				path: "/dashboard/profile",
-				lazy: async () => {
-					nprogress.start();
-					const module = await import("@/pages/dashboard/ProfilePage");
-					nprogress.complete();
-					return { Component: module.default };
-				},
+				lazy: lazyLoad(() => import("@/pages/dashboard/ProfilePage")),
 			},
 			{
 				path: "/dashboard/settings",
-				lazy: async () => {
-					nprogress.start();
-					const module = await import("@/pages/dashboard/SettingsPage");
-					nprogress.complete();
-					return { Component: module.default };
-				},
+				lazy: lazyLoad(() => import("@/pages/dashboard/SettingsPage")),
 			},
 		],
 	},
@@ -203,39 +172,19 @@ export const router = createBrowserRouter([
 		children: [
 			{
 				path: "/admin",
-				lazy: async () => {
-					nprogress.start();
-					const module = await import("@/pages/admin/AdminDashboardPage");
-					nprogress.complete();
-					return { Component: module.default };
-				},
+				lazy: lazyLoad(() => import("@/pages/admin/AdminDashboardPage")),
 			},
 			{
 				path: "/admin/users",
-				lazy: async () => {
-					nprogress.start();
-					const module = await import("@/pages/admin/AdminUsersPage");
-					nprogress.complete();
-					return { Component: module.default };
-				},
+				lazy: lazyLoad(() => import("@/pages/admin/AdminUsersPage")),
 			},
 			{
 				path: "/admin/links",
-				lazy: async () => {
-					nprogress.start();
-					const module = await import("@/pages/admin/AdminLinksPage");
-					nprogress.complete();
-					return { Component: module.default };
-				},
+				lazy: lazyLoad(() => import("@/pages/admin/AdminLinksPage")),
 			},
 			{
 				path: "/admin/chat",
-				lazy: async () => {
-					nprogress.start();
-					const module = await import("@/pages/admin/AdminChatPage");
-					nprogress.complete();
-					return { Component: module.default };
-				},
+				lazy: lazyLoad(() => import("@/pages/admin/AdminChatPage")),
 			},
 		],
 	},

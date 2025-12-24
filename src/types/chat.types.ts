@@ -34,6 +34,15 @@ export interface ReplyTo {
 	isDeleted: boolean;
 }
 
+export interface MessageSender {
+	id: string;
+	firstName?: string | null;
+	lastName?: string | null;
+	username?: string | null;
+	email: string;
+	avatarUrl?: string | null;
+}
+
 export interface Message {
 	id: string;
 	chatId: string;
@@ -45,6 +54,7 @@ export interface Message {
 	updatedAt: string;
 	replyToId?: string | null;
 	replyTo?: ReplyTo | null;
+	sender?: MessageSender | null;
 }
 
 export interface SendMessageDto {

@@ -3,6 +3,7 @@ import {
 	Box,
 	Center,
 	Group,
+	Loader,
 	Paper,
 	ScrollArea,
 	Stack,
@@ -10,117 +11,127 @@ import {
 	Tooltip,
 } from "@mantine/core";
 import { IconX, IconCircle } from "@tabler/icons-react";
-import { useRef, useState } from "react";
+import { useRef, useEffect, useState, useCallback } from "react";
 import { useAppDispatch, useAppSelector } from "@/app/hooks";
 import { setChatOpen } from "@/features/chat/chat.slice";
+import {
+	useGetUserChatsQuery,
+	useGetChatMessagesQuery,
+	useGetChatPresenceQuery,
+	useSendMessageMutation,
+	useUpdateMessageMutation,
+	useDeleteMessageMutation,
+	useCreateChatMutation,
+} from "@/app/api/chat.api";
+import { isSocketConnected } from "@/lib/socket";
 import { MessageBubble } from "../MessageBubble/MessageBubble";
 import { MessageInput } from "../MessageInput/MessageInput";
-import type { Message } from "@/types";
 import { TypingIndicator } from "../TypingIndicator/TypingIndicator";
+import type { Message } from "@/types";
 
 export function ChatWindow() {
 	const dispatch = useAppDispatch();
 	const viewport = useRef<HTMLDivElement>(null);
 	const { user } = useAppSelector((state) => state.auth);
+	const prevMessagesLengthRef = useRef(0);
 
-	const [messages, setMessages] = useState<Message[]>([
-		{
-			id: "1",
-			chatId: "chat-1",
-			senderId: "admin-1",
-			content: "Hello! How can I help you today?",
-			isEdited: false,
-			isDeleted: false,
-			createdAt: new Date(Date.now() - 3600000).toISOString(),
-			updatedAt: new Date(Date.now() - 3600000).toISOString(),
-		},
-		{
-			id: "2",
-			chatId: "chat-1",
-			senderId: "user-1",
-			content: "Hi! I have a question about my subscription.",
-			isEdited: false,
-			isDeleted: false,
-			createdAt: new Date(Date.now() - 3000000).toISOString(),
-			updatedAt: new Date(Date.now() - 3000000).toISOString(),
-		},
-		{
-			id: "3",
-			chatId: "chat-1",
-			senderId: "admin-1",
-			content: "Sure! I'd be happy to help. What would you like to know?",
-			isEdited: false,
-			isDeleted: false,
-			createdAt: new Date(Date.now() - 2400000).toISOString(),
-			updatedAt: new Date(Date.now() - 2400000).toISOString(),
-		},
-	]);
 	const [replyingTo, setReplyingTo] = useState<Message | null>(null);
 
-	const handleSend = (content: string) => {
-		const newMessage: Message = {
-			id: `msg-${Date.now()}`,
-			chatId: "chat-1",
-			senderId: user?.id || "user-1",
-			content,
-			isEdited: false,
-			isDeleted: false,
-			createdAt: new Date().toISOString(),
-			updatedAt: new Date().toISOString(),
-			replyToId: replyingTo?.id,
-			replyTo: replyingTo
-				? {
-						id: replyingTo.id,
-						content: replyingTo.content,
-						senderId: replyingTo.senderId,
-						isDeleted: replyingTo.isDeleted,
-					}
-				: null,
-		};
-		setMessages((prev) => [...prev, newMessage]);
-		setReplyingTo(null);
+	// Get user's chats - find the support chat
+	const { data: chats = [], isLoading: chatsLoading } = useGetUserChatsQuery();
+	const [createChat] = useCreateChatMutation();
 
-		setTimeout(() => {
-			viewport.current?.scrollTo({
-				top: viewport.current.scrollHeight,
-				behavior: "smooth",
+	// Find or create a support chat
+	const supportChat = chats.find((c) => c.type === "DIRECT") ?? chats[0];
+	const chatId = supportChat?.id;
+
+	// Create a new support chat if user has no chats
+	useEffect(() => {
+		if (!chatsLoading && chats.length === 0) {
+			createChat({ type: "DIRECT" });
+		}
+	}, [chatsLoading, chats.length, createChat]);
+
+	// Fetch messages for the active chat
+	const { data: messagesData, isLoading: messagesLoading } =
+		useGetChatMessagesQuery({ chatId: chatId! }, { skip: !chatId });
+
+	// Get typing/online presence
+	const { data: presence } = useGetChatPresenceQuery(chatId!, {
+		skip: !chatId,
+	});
+
+	const messages = messagesData?.data ?? [];
+	const typingUsers = presence?.typingUsers ?? [];
+
+	// Mutations
+	const [sendMessage] = useSendMessageMutation();
+	const [updateMessage] = useUpdateMessageMutation();
+	const [deleteMessage] = useDeleteMessageMutation();
+
+	// Auto-scroll to bottom when new messages arrive
+	useEffect(() => {
+		if (messages.length > prevMessagesLengthRef.current) {
+			setTimeout(() => {
+				viewport.current?.scrollTo({
+					top: viewport.current.scrollHeight,
+					behavior: "smooth",
+				});
+			}, 100);
+		}
+		prevMessagesLengthRef.current = messages.length;
+	}, [messages.length]);
+
+	const handleSend = useCallback(
+		(content: string) => {
+			if (!chatId || !user?.id) return;
+
+			sendMessage({
+				chatId,
+				data: {
+					content,
+					replyToId: replyingTo?.id,
+				},
+				senderId: user.id,
+				tempId: `temp-${Date.now()}`,
 			});
-		}, 100);
-	};
 
-	const handleEdit = (messageId: string, content: string) => {
-		setMessages((prev) =>
-			prev.map((msg) =>
-				msg.id === messageId
-					? {
-							...msg,
-							content,
-							isEdited: true,
-							updatedAt: new Date().toISOString(),
-						}
-					: msg,
-			),
-		);
-	};
+			setReplyingTo(null);
+		},
+		[chatId, user?.id, replyingTo, sendMessage],
+	);
 
-	const handleDelete = (messageId: string) => {
-		setMessages((prev) =>
-			prev.map((msg) =>
-				msg.id === messageId
-					? { ...msg, isDeleted: true, updatedAt: new Date().toISOString() }
-					: msg,
-			),
-		);
-	};
+	const handleEdit = useCallback(
+		(messageId: string, content: string) => {
+			if (!chatId) return;
+			updateMessage({
+				chatId,
+				messageId,
+				data: { content },
+			});
+		},
+		[chatId, updateMessage],
+	);
 
-	const handleReply = (message: Message) => {
+	const handleDelete = useCallback(
+		(messageId: string) => {
+			if (!chatId) return;
+			deleteMessage({ chatId, messageId });
+		},
+		[chatId, deleteMessage],
+	);
+
+	const handleReply = useCallback((message: Message) => {
 		setReplyingTo(message);
-	};
+	}, []);
 
 	const handleClose = () => {
 		setReplyingTo(null);
 		dispatch(setChatOpen(false));
 	};
+
+	const isConnected = isSocketConnected();
+	const isLoading = chatsLoading || (chatId && messagesLoading);
 
 	return (
 		<Paper
@@ -151,17 +162,28 @@ export function ChatWindow() {
 						<Text c="white" fw={600} size="sm">
 							Support Chat
 						</Text>
-						<Tooltip label="Connected" position="bottom">
+						<Tooltip
+							label={isConnected ? "Connected" : "Connecting..."}
+							position="bottom"
+						>
 							<IconCircle
 								size={8}
-								fill="var(--mantine-color-green-6)"
-								color="var(--mantine-color-green-6)"
+								fill={
+									isConnected
+										? "var(--mantine-color-green-6)"
+										: "var(--mantine-color-yellow-6)"
+								}
+								color={
+									isConnected
+										? "var(--mantine-color-green-6)"
+										: "var(--mantine-color-yellow-6)"
+								}
 								style={{ filter: "drop-shadow(0 0 6px currentColor)" }}
 							/>
 						</Tooltip>
 					</Group>
 					<Text size="xs" c="blue.1">
-						Online
+						{isConnected ? "Online" : "Connecting..."}
 					</Text>
 				</Stack>
 				<ActionIcon
@@ -177,7 +199,11 @@ export function ChatWindow() {
 			{/* Messages Area */}
 			<Box style={{ flex: 1, position: "relative", overflow: "hidden" }}>
 				<ScrollArea h="100%" viewportRef={viewport} p="md">
-					{messages.length === 0 ? (
+					{isLoading ? (
+						<Center h="100%">
+							<Loader size="md" />
+						</Center>
+					) : messages.length === 0 ? (
 						<Center h="100%">
 							<Stack gap="xs" align="center">
 								<Text c="dimmed" size="sm" ta="center" fw={500}>
@@ -194,7 +220,7 @@ export function ChatWindow() {
 								<MessageBubble
 									key={msg.id}
 									message={msg}
-									chatId="chat-1"
+									chatId={chatId!}
 									showAvatar={
 										index === 0 || messages[index - 1].senderId !== msg.senderId
 									}
@@ -207,13 +233,18 @@ export function ChatWindow() {
 					)}
 				</ScrollArea>
 			</Box>
-			<TypingIndicator userName="John Doe" />
+
+			{/* Typing Indicator - outside scroll so always visible, above input */}
+			<TypingIndicator typingUsers={typingUsers} />
+
 			{/* Input Area */}
 			<MessageInput
 				onSend={handleSend}
-				disabled={false}
+				disabled={!chatId || !isConnected}
 				replyingTo={replyingTo}
 				onCancelReply={() => setReplyingTo(null)}
+				chatId={chatId}
+				userId={user?.id}
 			/>
 		</Paper>
 	);

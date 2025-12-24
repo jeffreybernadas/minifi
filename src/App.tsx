@@ -17,6 +17,7 @@ import {
 	setAuthenticated,
 	setInitialized,
 } from "@/features/auth";
+import { connectSocket, disconnectSocket, joinRoom } from "@/lib/socket";
 import { NavigationProgress, router } from "@/router";
 import { theme } from "@/styles/theme";
 
@@ -34,6 +35,10 @@ function App() {
 					const userInfo = getUserFromToken();
 					if (userInfo) {
 						dispatch(setAuthenticated(userInfo));
+
+						// Connect socket and join user's personal room
+						connectSocket();
+						joinRoom(`user:${userInfo.id}`);
 					}
 				}
 
@@ -46,6 +51,7 @@ function App() {
 
 				// Handle auth state changes (logout from another tab, etc.)
 				keycloak.onAuthLogout = () => {
+					disconnectSocket();
 					dispatch(clearAuth());
 				};
 

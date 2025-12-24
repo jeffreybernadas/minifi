@@ -7,15 +7,21 @@ import {
 	Textarea,
 	Tooltip,
 } from "@mantine/core";
+import { useDebouncedCallback } from "@mantine/hooks";
 import { IconSend, IconX } from "@tabler/icons-react";
-import { useState, type KeyboardEvent } from "react";
+import { useState, useRef, useEffect, type KeyboardEvent } from "react";
 import type { Message } from "@/types";
+import { emitTyping, emitStoppedTyping } from "@/lib/socket";
 
 export interface MessageInputProps {
 	onSend: (content: string) => void;
 	disabled?: boolean;
 	replyingTo?: Message | null;
 	onCancelReply?: () => void;
+	/** Chat ID for typing indicator emission */
+	chatId?: string;
+	/** User ID for typing indicator emission */
+	userId?: string;
 }
 
 export function MessageInput({
@@ -23,11 +29,71 @@ export function MessageInput({
 	disabled,
 	replyingTo,
 	onCancelReply,
+	chatId,
+	userId,
 }: Readonly<MessageInputProps>) {
 	const [value, setValue] = useState("");
+	const isTypingRef = useRef(false);
+	const stopTypingTimeoutRef = useRef<
+		ReturnType<typeof setTimeout> | undefined
+	>(undefined);
+
+	// Emit stopped typing when component unmounts or chatId changes
+	useEffect(() => {
+		return () => {
+			if (isTypingRef.current && chatId && userId) {
+				emitStoppedTyping(chatId, userId);
+				isTypingRef.current = false;
+			}
+			if (stopTypingTimeoutRef.current) {
+				clearTimeout(stopTypingTimeoutRef.current);
+			}
+		};
+	}, [chatId, userId]);
+
+	// Debounced function to emit typing - waits 300ms before emitting
+	const debouncedEmitTyping = useDebouncedCallback(() => {
+		if (chatId && userId && !isTypingRef.current) {
+			emitTyping(chatId, userId);
+			isTypingRef.current = true;
+		}
+	}, 300);
+
+	// Schedule stopped typing after 1s of no input
+	const scheduleStopTyping = () => {
+		if (stopTypingTimeoutRef.current) {
+			clearTimeout(stopTypingTimeoutRef.current);
+		}
+		stopTypingTimeoutRef.current = setTimeout(() => {
+			if (chatId && userId && isTypingRef.current) {
+				emitStoppedTyping(chatId, userId);
+				isTypingRef.current = false;
+			}
+		}, 1000);
+	};
+
+	const handleChange = (newValue: string) => {
+		setValue(newValue);
+		if (newValue.trim()) {
+			debouncedEmitTyping();
+			scheduleStopTyping();
+		} else if (chatId && userId && isTypingRef.current) {
+			// Immediately stop if input is cleared
+			emitStoppedTyping(chatId, userId);
+			isTypingRef.current = false;
+		}
+	};
 
 	const handleSend = () => {
 		if (value.trim() && !disabled) {
+			// Stop typing indicator immediately when sending
+			if (chatId && userId && isTypingRef.current) {
+				emitStoppedTyping(chatId, userId);
+				isTypingRef.current = false;
+			}
+			if (stopTypingTimeoutRef.current) {
+				clearTimeout(stopTypingTimeoutRef.current);
+			}
 			onSend(value.trim());
 			setValue("");
 		}
@@ -91,7 +157,7 @@ export function MessageInput({
 					<Textarea
 						placeholder={disabled ? "Connecting..." : "Type a message..."}
 						value={value}
-						onChange={(e) => setValue(e.currentTarget.value)}
+						onChange={(e) => handleChange(e.currentTarget.value)}
 						onKeyDown={handleKeyDown}
 						minRows={1}
 						maxRows={4}
