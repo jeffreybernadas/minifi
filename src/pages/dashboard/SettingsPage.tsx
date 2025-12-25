@@ -295,8 +295,7 @@ function SubscriptionTab() {
 			{/* Actions */}
 			<Paper shadow="sm" p="xl" withBorder>
 				<Group justify="space-between">
-					{/* PRO with Stripe subscription - show billing management */}
-					{isPro && hasStripeSubscription && (
+					{isPro && hasStripeSubscription ? (
 						<>
 							<Box>
 								<Text fw={500}>Manage Subscription</Text>
@@ -324,10 +323,7 @@ function SubscriptionTab() {
 								)}
 							</Group>
 						</>
-					)}
-
-					{/* PRO without Stripe - complimentary/admin-granted */}
-					{isPro && !hasStripeSubscription && (
+					) : isPro && !hasStripeSubscription ? (
 						<>
 							<Box>
 								<Text fw={500}>Complimentary PRO Access</Text>
@@ -342,10 +338,7 @@ function SubscriptionTab() {
 								</Group>
 							</Badge>
 						</>
-					)}
-
-					{/* FREE user - show upgrade option */}
-					{!isPro && (
+					) : (
 						<>
 							<Box>
 								<Text fw={500}>Upgrade to PRO</Text>
