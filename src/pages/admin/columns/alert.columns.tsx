@@ -1,4 +1,5 @@
-import { Badge, Text, Tooltip } from "@mantine/core";
+import { Anchor, Badge, Text, Tooltip } from "@mantine/core";
+import { Link } from "react-router-dom";
 import type { Column } from "@/components/ui";
 import type { RecentAlert } from "@/types";
 import { formatScanScore } from "@/utils/scan-score.util";
@@ -40,9 +41,14 @@ export const alertColumns: Column<RecentAlert>[] = [
 		header: "Short Code",
 		width: 120,
 		render: (alert) => (
-			<Text size="sm" fw={500}>
+			<Anchor
+				component={Link}
+				to={`/admin/links/${alert.linkId}`}
+				size="sm"
+				fw={500}
+			>
 				{alert.shortCode}
-			</Text>
+			</Anchor>
 		),
 	},
 	{

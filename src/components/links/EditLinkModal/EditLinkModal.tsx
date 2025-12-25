@@ -26,18 +26,21 @@ import {
 } from "@tabler/icons-react";
 import { useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
+import { useEditAdminLinkMutation } from "@/app/api/admin.api";
 import { useUpdateLinkMutation } from "@/app/api/links.api";
 import { TagPicker } from "@/components/tags";
 import { useAuth } from "@/hooks";
 import { type EditLinkFormValues, editLinkSchema } from "@/schemas/link.schema";
-import type { Link } from "@/types";
+import type { AdminLinkDetail, Link } from "@/types";
 import { getErrorMessage } from "@/types";
 
 export interface EditLinkModalProps {
-	link: Link | null;
+	link: Link | AdminLinkDetail | null;
 	opened: boolean;
 	onClose: () => void;
 	onSuccess?: () => void;
+	/** Enable admin mode with additional fields and permissions */
+	isAdmin?: boolean;
 }
 
 export function EditLinkModal({
@@ -45,9 +48,16 @@ export function EditLinkModal({
 	opened,
 	onClose,
 	onSuccess,
+	isAdmin = false,
 }: EditLinkModalProps) {
 	const { isPro } = useAuth();
-	const [updateLink, { isLoading }] = useUpdateLinkMutation();
+	const [updateLink, { isLoading: isUserUpdating }] = useUpdateLinkMutation();
+	const [updateAdminLink, { isLoading: isAdminUpdating }] =
+		useEditAdminLinkMutation();
+
+	const isLoading = isUserUpdating || isAdminUpdating;
+	// Admin always has PRO-level permissions
+	const hasProFeatures = isPro || isAdmin;
 
 	const {
 		register,
@@ -83,6 +93,8 @@ export function EditLinkModal({
 
 	useEffect(() => {
 		if (link && opened) {
+			// Tags only exist on user Link type, not AdminLinkDetail
+			const userLink = isAdmin ? null : (link as Link);
 			reset({
 				title: link.title ?? "",
 				description: link.description ?? "",
@@ -94,10 +106,10 @@ export function EditLinkModal({
 				clickLimit: link.clickLimit ?? null,
 				isOneTime: link.isOneTime ?? false,
 				notes: link.notes ?? "",
-				tagIds: link.tags?.map((tag) => tag.id) ?? [],
+				tagIds: userLink?.tags?.map((tag) => tag.id) ?? [],
 			});
 		}
-	}, [link, opened, reset]);
+	}, [link, opened, reset, isAdmin]);
 
 	const handleClose = () => {
 		reset();
@@ -113,7 +125,7 @@ export function EditLinkModal({
 			if (dirtyFields.title) payload.title = values.title || null;
 			if (dirtyFields.description)
 				payload.description = values.description || null;
-			if (dirtyFields.customAlias && isPro)
+			if (dirtyFields.customAlias && hasProFeatures)
 				payload.customAlias = values.customAlias || null;
 			if (dirtyFields.notes) payload.notes = values.notes || null;
 			if (dirtyFields.clickLimit)
@@ -134,14 +146,18 @@ export function EditLinkModal({
 			}
 
 			// Check for tag changes manually since dirtyFields can be unreliable for arrays
-			const originalTagIds = (link.tags?.map((t) => t.id) ?? []).sort();
-			const newTagIds = (values.tagIds ?? []).sort();
-			const tagsChanged =
-				originalTagIds.length !== newTagIds.length ||
-				!originalTagIds.every((id, index) => id === newTagIds[index]);
+			// Tags are only available for user links, not admin
+			if (!isAdmin) {
+				const userLink = link as Link;
+				const originalTagIds = (userLink.tags?.map((t) => t.id) ?? []).sort();
+				const newTagIds = (values.tagIds ?? []).sort();
+				const tagsChanged =
+					originalTagIds.length !== newTagIds.length ||
+					!originalTagIds.every((id, index) => id === newTagIds[index]);
 
-			if (tagsChanged) {
-				payload.tagIds = values.tagIds;
+				if (tagsChanged) {
+					payload.tagIds = values.tagIds;
+				}
 			}
 
 			if (Object.keys(payload).length === 0) {
@@ -153,7 +169,12 @@ export function EditLinkModal({
 				return;
 			}
 
-			await updateLink({ id: link.id, data: payload }).unwrap();
+			// Use appropriate mutation based on mode
+			if (isAdmin) {
+				await updateAdminLink({ id: link.id, data: payload }).unwrap();
+			} else {
+				await updateLink({ id: link.id, data: payload }).unwrap();
+			}
 
 			notifications.show({
 				title: "Link updated",
@@ -242,7 +263,7 @@ export function EditLinkModal({
 
 							<Tooltip
 								label="Upgrade to PRO to use custom aliases"
-								disabled={isPro}
+								disabled={hasProFeatures}
 								position="top-start"
 								withArrow
 							>
@@ -250,7 +271,7 @@ export function EditLinkModal({
 									label={
 										<Group gap={4}>
 											<span>Custom Alias</span>
-											{!isPro && (
+											{!hasProFeatures && (
 												<IconCrown
 													size={14}
 													color="var(--mantine-color-violet-5)"
@@ -258,17 +279,19 @@ export function EditLinkModal({
 											)}
 										</Group>
 									}
-									placeholder={isPro ? "my-brand" : "PRO feature"}
+									placeholder={hasProFeatures ? "my-brand" : "PRO feature"}
 									description={
-										isPro
+										hasProFeatures
 											? "Create a memorable custom URL"
 											: "Upgrade to PRO to change custom aliases"
 									}
-									disabled={!isPro}
+									disabled={!hasProFeatures}
 									error={errors.customAlias?.message}
 									{...register("customAlias")}
 									styles={
-										!isPro ? { input: { cursor: "not-allowed" } } : undefined
+										!hasProFeatures
+											? { input: { cursor: "not-allowed" } }
+											: undefined
 									}
 								/>
 							</Tooltip>
@@ -397,25 +420,28 @@ export function EditLinkModal({
 							<Textarea
 								label="Notes"
 								placeholder="Private notes about this link"
-								description="Only visible to you"
+								description={isAdmin ? "Admin notes" : "Only visible to you"}
 								rows={3}
 								error={errors.notes?.message}
 								{...register("notes")}
 							/>
 
-							<Controller
-								name="tagIds"
-								control={control}
-								render={({ field, fieldState }) => (
-									<TagPicker
-										value={field.value || []}
-										onChange={field.onChange}
-										label="Tags"
-										description="Organize your links with tags"
-										error={fieldState.error?.message}
-									/>
-								)}
-							/>
+							{/* Tags only available for user links, not admin */}
+							{!isAdmin && (
+								<Controller
+									name="tagIds"
+									control={control}
+									render={({ field, fieldState }) => (
+										<TagPicker
+											value={field.value || []}
+											onChange={field.onChange}
+											label="Tags"
+											description="Organize your links with tags"
+											error={fieldState.error?.message}
+										/>
+									)}
+								/>
+							)}
 						</Stack>
 					</Tabs.Panel>
 				</Tabs>

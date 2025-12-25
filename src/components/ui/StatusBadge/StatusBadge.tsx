@@ -13,6 +13,7 @@ const LINK_STATUS_CONFIG: Record<
 	DISABLED: { color: "gray", label: "Disabled" },
 	ARCHIVED: { color: "dark", label: "Archived" },
 	SUSPICIOUS: { color: "yellow", label: "Suspicious" },
+	BLOCKED: { color: "red", label: "Blocked" },
 };
 
 /**

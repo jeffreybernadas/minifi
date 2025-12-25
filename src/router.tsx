@@ -183,6 +183,10 @@ export const router = createBrowserRouter([
 				lazy: lazyLoad(() => import("@/pages/admin/AdminLinksPage")),
 			},
 			{
+				path: "/admin/links/:id",
+				lazy: lazyLoad(() => import("@/pages/admin/AdminLinkDetailPage")),
+			},
+			{
 				path: "/admin/chat",
 				lazy: lazyLoad(() => import("@/pages/admin/AdminChatPage")),
 			},
