@@ -87,6 +87,7 @@ function SubscriptionTab() {
 
 	const isPro = subscription?.tier === "PRO";
 	const isCancelled = subscription?.cancelAtPeriodEnd === true;
+	const hasStripeSubscription = Boolean(subscription?.stripeSubscriptionId);
 	const shouldFetchUsage = Boolean(subscription && !isPro);
 	const {
 		data: usageData,
@@ -201,6 +202,11 @@ function SubscriptionTab() {
 										Cancels at period end
 									</Badge>
 								)}
+								{isPro && !hasStripeSubscription && (
+									<Badge size="sm" color="teal" variant="light">
+										Complimentary
+									</Badge>
+								)}
 							</Group>
 						</Box>
 
@@ -289,7 +295,8 @@ function SubscriptionTab() {
 			{/* Actions */}
 			<Paper shadow="sm" p="xl" withBorder>
 				<Group justify="space-between">
-					{isPro ? (
+					{/* PRO with Stripe subscription - show billing management */}
+					{isPro && hasStripeSubscription && (
 						<>
 							<Box>
 								<Text fw={500}>Manage Subscription</Text>
@@ -317,7 +324,28 @@ function SubscriptionTab() {
 								)}
 							</Group>
 						</>
-					) : (
+					)}
+
+					{/* PRO without Stripe - complimentary/admin-granted */}
+					{isPro && !hasStripeSubscription && (
+						<>
+							<Box>
+								<Text fw={500}>Complimentary PRO Access</Text>
+								<Text size="sm" c="dimmed">
+									Your PRO access is managed by an administrator
+								</Text>
+							</Box>
+							<Badge size="lg" color="teal" variant="light">
+								<Group gap={4}>
+									<IconCrown size={14} />
+									Active
+								</Group>
+							</Badge>
+						</>
+					)}
+
+					{/* FREE user - show upgrade option */}
+					{!isPro && (
 						<>
 							<Box>
 								<Text fw={500}>Upgrade to PRO</Text>
