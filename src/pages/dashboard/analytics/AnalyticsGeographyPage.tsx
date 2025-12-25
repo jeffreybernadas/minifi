@@ -1,5 +1,6 @@
 import { Grid, Stack, Text, Title, Tooltip } from "@mantine/core";
 import { DatePickerInput } from "@mantine/dates";
+import { useState } from "react";
 import { useGetGlobalAnalyticsQuery } from "@/app/api/links.api";
 import {
 	AnalyticsEmptyState,
@@ -8,7 +9,6 @@ import {
 } from "@/components/analytics";
 import { ProFeatureGuard } from "@/components/common";
 import { useAuth } from "@/hooks";
-import { useState } from "react";
 
 /**
  * AnalyticsGeographyPage

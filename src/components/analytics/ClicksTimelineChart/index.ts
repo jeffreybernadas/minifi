@@ -1,2 +1,2 @@
-export { ClicksTimelineChart } from "./ClicksTimelineChart";
 export type { ClicksTimelineChartProps } from "./ClicksTimelineChart";
+export { ClicksTimelineChart } from "./ClicksTimelineChart";

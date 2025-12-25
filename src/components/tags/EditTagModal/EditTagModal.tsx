@@ -1,21 +1,21 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
-	Modal,
-	TextInput,
-	ColorInput,
 	Button,
-	Stack,
+	ColorInput,
 	Group,
+	Modal,
+	Stack,
 	Text,
+	TextInput,
 } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { useUpdateTagMutation } from "@/app/api/tags.api";
-import { tagSchema, type TagFormData } from "@/schemas/tag.schema";
 import { TagBadge } from "@/components/ui";
-import { getErrorMessage } from "@/types";
+import { type TagFormData, tagSchema } from "@/schemas/tag.schema";
 import type { Tag } from "@/types";
+import { getErrorMessage } from "@/types";
 
 export interface EditTagModalProps {
 	/** Tag to edit */

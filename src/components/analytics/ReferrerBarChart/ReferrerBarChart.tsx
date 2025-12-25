@@ -1,5 +1,5 @@
-import { Paper, Stack, Title } from "@mantine/core";
 import { BarChart } from "@mantine/charts";
+import { Paper, Stack, Title } from "@mantine/core";
 import type { TopReferrer } from "@/types";
 import { AnalyticsEmptyState } from "../AnalyticsEmptyState";
 

@@ -1,11 +1,11 @@
-import { MultiSelect, Button, Group, Stack } from "@mantine/core";
+import { Button, Group, MultiSelect, Stack } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { IconPlus } from "@tabler/icons-react";
 import { useMemo, useState } from "react";
 import { useGetTagsQuery } from "@/app/api/tags.api";
-import { CreateTagModal } from "../CreateTagModal/CreateTagModal";
 import { TagBadge } from "@/components/ui";
 import type { Tag } from "@/types";
+import { CreateTagModal } from "../CreateTagModal/CreateTagModal";
 
 export interface TagPickerProps {
 	/** Selected tag IDs */

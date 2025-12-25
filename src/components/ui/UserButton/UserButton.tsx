@@ -9,8 +9,8 @@ import { Link } from "react-router-dom";
 import { useGetUserProfileQuery } from "@/app/api/user.api";
 import { UserBadges } from "@/components/ui";
 import { keycloak } from "@/features/auth";
-import classes from "./UserButton.module.css";
 import { useAuth } from "@/hooks";
+import classes from "./UserButton.module.css";
 
 interface UserButtonProps {
 	onNavigate?: () => void;

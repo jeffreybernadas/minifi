@@ -9,9 +9,9 @@ import {
 } from "@mantine/core";
 import { useDebouncedCallback } from "@mantine/hooks";
 import { IconSend, IconX } from "@tabler/icons-react";
-import { useState, useRef, useEffect, type KeyboardEvent } from "react";
+import { type KeyboardEvent, useEffect, useRef, useState } from "react";
+import { emitStoppedTyping, emitTyping } from "@/lib/socket";
 import type { Message } from "@/types";
-import { emitTyping, emitStoppedTyping } from "@/lib/socket";
 
 export interface MessageInputProps {
 	onSend: (content: string) => void;

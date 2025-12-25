@@ -1,2 +1,2 @@
-export { TagBadge } from "./TagBadge";
 export type { TagBadgeProps } from "./TagBadge";
+export { TagBadge } from "./TagBadge";

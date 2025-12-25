@@ -27,9 +27,9 @@ import {
 	VITE_KEYCLOAK_REALM,
 	VITE_KEYCLOAK_URL,
 } from "@/constants/env.constant";
+import { useAuth } from "@/hooks";
 import { type ProfileFormData, profileSchema } from "@/schemas/profile.schema";
 import { getErrorMessage } from "@/types/api.types";
-import { useAuth } from "@/hooks";
 
 export default function ProfilePage() {
 	const { isAdmin } = useAuth();

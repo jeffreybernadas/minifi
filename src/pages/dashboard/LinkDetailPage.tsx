@@ -30,7 +30,6 @@ import {
 	ReferrerBarChart,
 	TopCountriesTable,
 } from "@/components/analytics";
-import { AnalyticsPieChart } from "@/components/ui";
 import { ProFeatureGuard } from "@/components/common";
 import {
 	EditLinkModal,
@@ -42,6 +41,7 @@ import {
 	LinkStatsGrid,
 	LinkTagsCard,
 } from "@/components/links";
+import { AnalyticsPieChart } from "@/components/ui";
 import { useAuth } from "@/hooks";
 import type { Link, TopCountryData } from "@/types";
 import { getErrorMessage } from "@/types";

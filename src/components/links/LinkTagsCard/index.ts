@@ -1,2 +1,2 @@
-export { LinkTagsCard } from "./LinkTagsCard";
 export type { LinkTagsCardProps } from "./LinkTagsCard";
+export { LinkTagsCard } from "./LinkTagsCard";

@@ -1,5 +1,5 @@
-export { AnalyticsPieChart } from "./AnalyticsPieChart";
 export type {
 	AnalyticsPieChartDatum,
 	AnalyticsPieChartProps,
 } from "./AnalyticsPieChart";
+export { AnalyticsPieChart } from "./AnalyticsPieChart";

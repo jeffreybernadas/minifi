@@ -1,5 +1,5 @@
-import { Paper, Stack, Title, useMantineTheme } from "@mantine/core";
 import { PieChart } from "@mantine/charts";
+import { Paper, Stack, Title, useMantineTheme } from "@mantine/core";
 import { AnalyticsEmptyState } from "@/components/analytics/AnalyticsEmptyState";
 
 export interface AnalyticsPieChartDatum {

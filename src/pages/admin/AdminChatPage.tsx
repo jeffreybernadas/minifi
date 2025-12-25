@@ -11,24 +11,24 @@ import {
 	Text,
 	Tooltip,
 } from "@mantine/core";
-import { IconCircle, IconMessageCircle } from "@tabler/icons-react";
-import { useRef, useEffect, useState, useCallback } from "react";
-import TimeAgo from "react-timeago";
 import { upperFirst } from "@mantine/hooks";
-import { useAuth } from "@/hooks";
+import { IconCircle, IconMessageCircle } from "@tabler/icons-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import TimeAgo from "react-timeago";
 import {
-	useGetUserChatsQuery,
+	useDeleteMessageMutation,
 	useGetChatMessagesQuery,
 	useGetChatPresenceQuery,
+	useGetUserChatsQuery,
+	useMarkChatAsReadMutation,
 	useSendMessageMutation,
 	useUpdateMessageMutation,
-	useDeleteMessageMutation,
-	useMarkChatAsReadMutation,
 } from "@/app/api/chat.api";
-import { isSocketConnected } from "@/lib/socket";
 import { MessageBubble } from "@/components/chat/MessageBubble/MessageBubble";
 import { MessageInput } from "@/components/chat/MessageInput/MessageInput";
 import { TypingIndicator } from "@/components/chat/TypingIndicator/TypingIndicator";
+import { useAuth } from "@/hooks";
+import { isSocketConnected } from "@/lib/socket";
 import type { Chat, Message } from "@/types";
 
 export default function AdminChatPage() {

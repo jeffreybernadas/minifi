@@ -1,4 +1,4 @@
-import { Badge, type MantineSize, CloseButton } from "@mantine/core";
+import { Badge, CloseButton, type MantineSize } from "@mantine/core";
 import type { Tag } from "@/types";
 
 export interface TagBadgeProps {

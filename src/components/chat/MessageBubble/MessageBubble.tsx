@@ -11,17 +11,17 @@ import {
 	Tooltip,
 } from "@mantine/core";
 import {
+	IconCheck,
+	IconCornerUpLeft,
 	IconDots,
 	IconEdit,
 	IconTrash,
-	IconCheck,
 	IconX,
-	IconCornerUpLeft,
 } from "@tabler/icons-react";
 import { useState } from "react";
 import TimeAgo from "react-timeago";
-import type { Message } from "@/types";
 import { useAuth } from "@/hooks";
+import type { Message } from "@/types";
 
 export interface MessageBubbleProps {
 	message: Message;

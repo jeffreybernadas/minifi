@@ -1,14 +1,15 @@
 import {
 	Badge,
 	Grid,
-	Tooltip,
 	Group,
 	Paper,
 	SimpleGrid,
 	Stack,
 	Text,
 	Title,
+	Tooltip,
 } from "@mantine/core";
+import { DatePickerInput } from "@mantine/dates";
 import {
 	IconCalendar,
 	IconChartLine,
@@ -25,9 +26,8 @@ import {
 	TopLinksTable,
 } from "@/components/analytics";
 import { ProFeatureGuard } from "@/components/common";
-import { useAuth } from "@/hooks";
-import { DatePickerInput } from "@mantine/dates";
 import { StatsCard } from "@/components/ui";
+import { useAuth } from "@/hooks";
 
 /**
  * AnalyticsOverviewPage

@@ -1,8 +1,8 @@
 import { ActionIcon, Indicator, Transition } from "@mantine/core";
 import { IconMessageCircle } from "@tabler/icons-react";
+import { useGetUserChatsQuery } from "@/app/api/chat.api";
 import { useAppDispatch, useAppSelector } from "@/app/hooks";
 import { setChatOpen } from "@/features/chat/chat.slice";
-import { useGetUserChatsQuery } from "@/app/api/chat.api";
 import { useAuth } from "@/hooks";
 import { ChatWindow } from "../ChatWindow/ChatWindow";
 

@@ -3,15 +3,15 @@ import {
 	Group,
 	Paper,
 	Stack,
+	Text,
 	TextInput,
 	Title,
-	Text,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { modals } from "@mantine/modals";
 import { notifications } from "@mantine/notifications";
 import { IconPlus, IconSearch, IconTags } from "@tabler/icons-react";
-import { useMemo, useState, useCallback } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useDeleteTagMutation, useGetTagsQuery } from "@/app/api/tags.api";
 import { CreateTagModal, EditTagModal } from "@/components/tags";
 import { DataTable } from "@/components/ui";

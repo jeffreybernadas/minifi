@@ -27,9 +27,9 @@ import {
 	useRescanLinkMutation,
 	useUnarchiveLinkMutation,
 } from "@/app/api/links.api";
-import { getLinkColumns } from "@/pages/dashboard/columns";
 import { CreateLinkModal, EditLinkModal } from "@/components/links";
 import { DataTable, StatsCard } from "@/components/ui";
+import { getLinkColumns } from "@/pages/dashboard/columns";
 import type { LinkStatus, Link as LinkType } from "@/types";
 import { getErrorMessage } from "@/types";
 import { getStatsCards, STATUS_OPTIONS } from "./constants";

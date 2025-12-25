@@ -13,8 +13,8 @@ import {
 } from "redux-persist";
 import storage from "redux-persist/lib/storage";
 import authReducer from "@/features/auth/auth.slice";
-import themeReducer from "@/features/theme/theme.slice";
 import chatReducer from "@/features/chat/chat.slice";
+import themeReducer from "@/features/theme/theme.slice";
 import { baseApi, publicApi } from "./api/base.api";
 
 /**

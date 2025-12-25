@@ -10,24 +10,24 @@ import {
 	Text,
 	Tooltip,
 } from "@mantine/core";
-import { IconX, IconCircle } from "@tabler/icons-react";
-import { useRef, useEffect, useState, useCallback } from "react";
-import { useAppDispatch, useAppSelector } from "@/app/hooks";
-import { setChatOpen } from "@/features/chat/chat.slice";
+import { IconCircle, IconX } from "@tabler/icons-react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
-	useGetUserChatsQuery,
+	useCreateChatMutation,
+	useDeleteMessageMutation,
 	useGetChatMessagesQuery,
 	useGetChatPresenceQuery,
+	useGetUserChatsQuery,
 	useSendMessageMutation,
 	useUpdateMessageMutation,
-	useDeleteMessageMutation,
-	useCreateChatMutation,
 } from "@/app/api/chat.api";
+import { useAppDispatch, useAppSelector } from "@/app/hooks";
+import { setChatOpen } from "@/features/chat/chat.slice";
 import { isSocketConnected } from "@/lib/socket";
+import type { Message } from "@/types";
 import { MessageBubble } from "../MessageBubble/MessageBubble";
 import { MessageInput } from "../MessageInput/MessageInput";
 import { TypingIndicator } from "../TypingIndicator/TypingIndicator";
-import type { Message } from "@/types";
 
 export function ChatWindow() {
 	const dispatch = useAppDispatch();

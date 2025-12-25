@@ -6,17 +6,17 @@ import {
 	SimpleGrid,
 	Stack,
 	Text,
-	Tooltip,
 	Title,
+	Tooltip,
 } from "@mantine/core";
 import { DatePickerInput } from "@mantine/dates";
+import { useState } from "react";
 import { useGetGlobalAnalyticsQuery } from "@/app/api/links.api";
 import { ReferrerBarChart } from "@/components/analytics";
 import { ProFeatureGuard } from "@/components/common";
 import { AnalyticsPieChart } from "@/components/ui";
 import { useAuth } from "@/hooks";
 import type { TopDevice } from "@/types";
-import { useState } from "react";
 
 /**
  * AnalyticsAudiencePage

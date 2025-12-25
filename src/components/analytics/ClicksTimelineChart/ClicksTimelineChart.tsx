@@ -1,5 +1,5 @@
-import { Paper, Stack, Title } from "@mantine/core";
 import { LineChart } from "@mantine/charts";
+import { Paper, Stack, Title } from "@mantine/core";
 import type { ClicksByDate } from "@/types";
 import { AnalyticsEmptyState } from "../AnalyticsEmptyState";
 
