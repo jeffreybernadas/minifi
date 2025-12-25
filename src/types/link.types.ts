@@ -10,6 +10,7 @@ export type LinkStatus =
 	| "SCHEDULED"
 	| "DISABLED"
 	| "ARCHIVED"
+	| "BLOCKED"
 	| "SUSPICIOUS";
 
 /**

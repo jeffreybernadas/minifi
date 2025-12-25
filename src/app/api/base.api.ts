@@ -121,7 +121,7 @@ export const baseApi = createApi({
 		"Subscription",
 		"Chat",
 		"Message",
-		"AdminStats",
+		"Admin",
 		"AdminUser",
 		"AdminLink",
 	],
