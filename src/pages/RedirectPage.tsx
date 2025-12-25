@@ -45,6 +45,7 @@ import {
 	redirectPasswordSchema,
 } from "@/schemas/redirect.schema";
 import { getErrorMessage } from "@/types";
+import { formatScanScore } from "@/utils/scan-score.util";
 
 // Security status config
 const SECURITY_CONFIG: Record<
@@ -391,10 +392,10 @@ export default function RedirectPage() {
 							pendingWarning.scanScore !== null && (
 								<Group gap="xs">
 									<Text size="sm" c="dimmed">
-										Risk Score:
+										Safety Score:
 									</Text>
 									<Tooltip
-										label="Higher score = safer. 0 is dangerous, 1.0 is most safe."
+										label="100% is safest, 0% is most dangerous"
 										position="top"
 										withArrow
 									>
@@ -403,7 +404,7 @@ export default function RedirectPage() {
 											variant="light"
 											style={{ cursor: "help" }}
 										>
-											{pendingWarning.scanScore.toFixed(2)}
+											{formatScanScore(pendingWarning.scanScore)}
 										</Badge>
 									</Tooltip>
 								</Group>

@@ -1,5 +1,6 @@
 import { Badge, List, Paper, Stack, Text } from "@mantine/core";
 import type { Link } from "@/types";
+import { formatScanScore } from "@/utils/scan-score.util";
 
 export interface LinkScanDetailsProps {
 	link: Link;
@@ -19,7 +20,7 @@ export function LinkScanDetails({
 			<Stack gap={4}>
 				{link.scanScore !== null && link.scanScore !== undefined && (
 					<Text size="sm" c="dimmed">
-						Score: {link.scanScore}/1
+						Safety Score: {formatScanScore(link.scanScore)}
 					</Text>
 				)}
 				<Text size="sm" c="dimmed">

@@ -1,16 +1,11 @@
 import {
-	Badge,
-	Center,
 	Group,
-	Loader,
 	Paper,
 	Progress,
 	SimpleGrid,
 	Stack,
-	Table,
 	Text,
 	Title,
-	Tooltip,
 } from "@mantine/core";
 import {
 	IconAlertTriangle,
@@ -32,36 +27,9 @@ import {
 	MultiSeriesLineChart,
 	TopCountriesTable,
 } from "@/components/analytics";
-import { AnalyticsPieChart, StatsCard } from "@/components/ui";
-import type { DailyStat, RecentAlert, SecurityStat } from "@/types";
-import { formatTime } from "@/utils/time.util";
-
-/**
- * Get badge color for scan status
- */
-const getScanStatusColor = (status: string): string => {
-	switch (status) {
-		case "SAFE":
-			return "green";
-		case "PENDING":
-			return "gray";
-		case "SUSPICIOUS":
-			return "yellow";
-		case "MALICIOUS":
-			return "red";
-		case "ADULT_CONTENT":
-			return "orange";
-		default:
-			return "gray";
-	}
-};
-
-/**
- * Format URL for display (truncate)
- */
-const truncateUrl = (url: string, maxLength = 50): string => {
-	return url.length > maxLength ? `${url.slice(0, maxLength)}...` : url;
-};
+import { AnalyticsPieChart, DataTable, StatsCard } from "@/components/ui";
+import type { DailyStat, SecurityStat } from "@/types";
+import { alertColumns, getScanStatusColor } from "./columns";
 
 /**
  * Merge daily trend data into a single dataset for MultiSeriesLineChart
@@ -323,77 +291,24 @@ export default function AdminDashboardPage() {
 			</Paper>
 
 			{/* Recent Security Alerts */}
-			<Paper withBorder p="lg" radius="md">
-				<Title order={3} mb="md">
-					Recent Security Alerts
-				</Title>
-
-				{securityLoading ? (
-					<Center p="xl">
-						<Loader size="md" />
-					</Center>
-				) : !security?.recentAlerts?.length ? (
-					<Center p="xl">
-						<Stack align="center" gap="xs">
-							<IconShieldCheck size={48} color="var(--mantine-color-green-6)" />
-							<Text c="dimmed">No security alerts</Text>
-						</Stack>
-					</Center>
-				) : (
-					<Table striped highlightOnHover>
-						<Table.Thead>
-							<Table.Tr>
-								<Table.Th>Short Code</Table.Th>
-								<Table.Th>Original URL</Table.Th>
-								<Table.Th>Status</Table.Th>
-								<Table.Th>Score</Table.Th>
-								<Table.Th>Scanned At</Table.Th>
-							</Table.Tr>
-						</Table.Thead>
-						<Table.Tbody>
-							{security.recentAlerts.slice(0, 10).map((alert: RecentAlert) => (
-								<Table.Tr key={alert.linkId}>
-									<Table.Td>
-										<Text size="sm" fw={500}>
-											{alert.shortCode}
-										</Text>
-									</Table.Td>
-									<Table.Td>
-										<Tooltip label={alert.originalUrl}>
-											<Text size="sm" c="dimmed">
-												{truncateUrl(alert.originalUrl)}
-											</Text>
-										</Tooltip>
-									</Table.Td>
-									<Table.Td>
-										<Badge color={getScanStatusColor(alert.scanStatus)}>
-											{alert.scanStatus}
-										</Badge>
-									</Table.Td>
-									<Table.Td>
-										<Text size="sm">
-											{alert.scanScore !== null ? `${alert.scanScore}%` : "—"}
-										</Text>
-									</Table.Td>
-									<Table.Td>
-										<Tooltip
-											label={
-												alert.scannedAt
-													? new Date(alert.scannedAt).toLocaleString()
-													: "Not scanned"
-											}
-										>
-											<Text size="sm" c="dimmed">
-												{alert.scannedAt ? formatTime(alert.scannedAt) : "—"}
-											</Text>
-										</Tooltip>
-									</Table.Td>
-								</Table.Tr>
-							))}
-						</Table.Tbody>
-					</Table>
-				)}
-			</Paper>
+			<Stack gap="sm">
+				<Title order={3}>Recent Security Alerts</Title>
+				<DataTable
+					data={security?.recentAlerts?.slice(0, 10) ?? []}
+					columns={alertColumns}
+					rowKey={(alert) => alert.linkId}
+					loading={securityLoading}
+					page={1}
+					pageCount={1}
+					onPageChange={() => {}}
+					emptyState={{
+						icon: IconShieldCheck,
+						title: "No security alerts",
+						description: "All links are currently safe",
+					}}
+					minWidth={600}
+				/>
+			</Stack>
 		</Stack>
 	);
 }
