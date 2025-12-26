@@ -28,6 +28,7 @@ import {
 	useGetChatMessagesQuery,
 	useGetChatPresenceQuery,
 	useGetUserChatsQuery,
+	useGetUsersPresenceQuery,
 	useSendMessageMutation,
 	useUpdateMessageMutation,
 } from "@/app/api/chat.api";
@@ -37,12 +38,7 @@ import { MessageInput } from "@/components/chat/MessageInput/MessageInput";
 import { TypingIndicator } from "@/components/chat/TypingIndicator/TypingIndicator";
 import { setActiveChat } from "@/features/chat/chat.slice";
 import { useAuth } from "@/hooks";
-import {
-	emitMessagesRead,
-	emitUserOffline,
-	emitUserOnline,
-	isSocketConnected,
-} from "@/lib/socket";
+import { emitMessagesRead, isSocketConnected } from "@/lib/socket";
 import type { Chat, ChatMember, Message } from "@/types";
 import { UserDetailDrawer } from "./components/UserDetailDrawer";
 
@@ -75,16 +71,28 @@ export default function AdminChatPage() {
 		{ skip: !activeChatId },
 	);
 
-	// Get typing/online presence for active chat
+	// Get typing presence for active chat (chat-room scoped)
 	const { data: presence } = useGetChatPresenceQuery(activeChatId!, {
 		skip: !activeChatId,
+	});
+
+	// Extract user IDs from all chats for global presence query
+	const userIds = useMemo(() => {
+		return chats
+			.map((c) => c.members?.[0]?.userId)
+			.filter((id): id is string => Boolean(id));
+	}, [chats]);
+
+	// Get global user presence (user-level online status)
+	const { data: usersPresence } = useGetUsersPresenceQuery(userIds, {
+		skip: userIds.length === 0,
 	});
 
 	const messages = messagesData?.data ?? [];
 	const hasMoreMessages = messagesData?.meta?.hasNextPage ?? false;
 	const nextCursor = messagesData?.meta?.nextCursor;
 	const typingUsers = presence?.typingUsers ?? [];
-	const onlineUsers = presence?.onlineUsers ?? [];
+	const onlineUserIds = usersPresence?.onlineUserIds ?? [];
 	const isTyping = typingUsers.length > 0;
 
 	// Mutations
@@ -143,17 +151,6 @@ export default function AdminChatPage() {
 			});
 		}
 	}, [isTyping, replyingTo]);
-
-	// Emit online status when admin selects a chat
-	useEffect(() => {
-		if (activeChatId && user?.id && isConnected) {
-			emitUserOnline(activeChatId, user.id);
-
-			return () => {
-				emitUserOffline(activeChatId, user.id);
-			};
-		}
-	}, [activeChatId, user?.id, isConnected]);
 
 	// Emit read events for unread messages when chat is selected
 	useEffect(() => {
@@ -299,8 +296,9 @@ export default function AdminChatPage() {
 
 	const activeChat = chats.find((c) => c.id === activeChatId);
 	const activeMember = activeChat ? getOtherMember(activeChat) : undefined;
+	// Use global presence (user logged in anywhere)
 	const isUserOnline = activeMember
-		? onlineUsers.includes(activeMember.userId)
+		? onlineUserIds.includes(activeMember.userId)
 		: false;
 
 	// Build userNames map for typing indicator
@@ -392,8 +390,9 @@ export default function AdminChatPage() {
 								const otherMember = getOtherMember(chat);
 								const isActive = chat.id === activeChatId;
 								const hasUnread = (chat.unreadCount ?? 0) > 0;
+								// Use global presence (user logged in anywhere)
 								const memberOnline = otherMember
-									? onlineUsers.includes(otherMember.userId)
+									? onlineUserIds.includes(otherMember.userId)
 									: false;
 
 								return (

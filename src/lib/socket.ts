@@ -149,25 +149,3 @@ export const emitMessagesRead = (
 		s.emit("chat:messages-read", { chatId, messageIds, userId });
 	}
 };
-
-// ============ Online Status ============
-
-/**
- * Emit that user is online in a chat.
- */
-export const emitUserOnline = (chatId: string, userId: string): void => {
-	const s = getSocket();
-	if (s.connected) {
-		s.emit("chat:user-online", { chatId, userId });
-	}
-};
-
-/**
- * Emit that user is offline in a chat.
- */
-export const emitUserOffline = (chatId: string, userId: string): void => {
-	const s = getSocket();
-	if (s.connected) {
-		s.emit("chat:user-offline", { chatId, userId });
-	}
-};

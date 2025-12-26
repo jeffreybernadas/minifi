@@ -23,6 +23,7 @@ import {
 	chatApi,
 	useCreateChatMutation,
 	useDeleteMessageMutation,
+	useGetAdminPresenceQuery,
 	useGetChatMessagesQuery,
 	useGetChatPresenceQuery,
 	useGetUserChatsQuery,
@@ -31,12 +32,7 @@ import {
 } from "@/app/api/chat.api";
 import { useAppDispatch, useAppSelector } from "@/app/hooks";
 import { setChatOpen } from "@/features/chat/chat.slice";
-import {
-	emitMessagesRead,
-	emitUserOffline,
-	emitUserOnline,
-	isSocketConnected,
-} from "@/lib/socket";
+import { emitMessagesRead, isSocketConnected } from "@/lib/socket";
 import type { Message } from "@/types";
 import { MessageBubble } from "../MessageBubble/MessageBubble";
 import { MessageInput } from "../MessageInput/MessageInput";
@@ -75,8 +71,13 @@ export function ChatWindow() {
 		isFetching,
 	} = useGetChatMessagesQuery({ chatId: chatId!, cursor }, { skip: !chatId });
 
-	// Get typing/online presence
+	// Get typing presence (chat-room scoped)
 	const { data: presence } = useGetChatPresenceQuery(chatId!, {
+		skip: !chatId,
+	});
+
+	// Get global admin presence (user-level online status)
+	const { data: adminPresence } = useGetAdminPresenceQuery(undefined, {
 		skip: !chatId,
 	});
 
@@ -86,7 +87,6 @@ export function ChatWindow() {
 	// nextCursor points to the oldest message in current batch (for loading older)
 	const nextCursor = messagesData?.meta?.nextCursor;
 	const typingUsers = presence?.typingUsers ?? [];
-	const onlineUsers = presence?.onlineUsers ?? [];
 	const isTyping = typingUsers.length > 0;
 
 	// Get admin member from chat
@@ -94,9 +94,8 @@ export function ChatWindow() {
 		return supportChat?.members?.find((m) => m.userId !== user?.id) ?? null;
 	}, [supportChat?.members, user?.id]);
 
-	const isAdminOnline = adminMember
-		? onlineUsers.includes(adminMember.userId)
-		: false;
+	// Use global presence (any admin logged in anywhere)
+	const isAdminOnline = adminPresence?.isAdminOnline ?? false;
 
 	// Build userNames map for typing indicator
 	const userNames = useMemo(() => {
@@ -116,17 +115,6 @@ export function ChatWindow() {
 	const [deleteMessage] = useDeleteMessageMutation();
 
 	const isConnected = isSocketConnected();
-
-	// Emit online status when chat opens/closes
-	useEffect(() => {
-		if (chatId && user?.id && isConnected) {
-			emitUserOnline(chatId, user.id);
-
-			return () => {
-				emitUserOffline(chatId, user.id);
-			};
-		}
-	}, [chatId, user?.id, isConnected]);
 
 	// Emit read receipts for unread messages when chat opens
 	useEffect(() => {

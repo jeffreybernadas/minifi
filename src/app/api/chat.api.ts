@@ -1,3 +1,4 @@
+import { WEBSOCKET_EVENTS } from "@/constants/websocket.constant";
 import { getSocket, joinRoom, leaveRoom } from "@/lib/socket";
 import type { Chat, Message, SendMessageDto } from "@/types";
 import type { RootState } from "../store";
@@ -33,7 +34,6 @@ export interface CursorPaginatedResponse<T> {
 
 interface ChatPresence {
 	typingUsers: string[];
-	onlineUsers: string[];
 }
 
 /**
@@ -143,15 +143,15 @@ export const chatApi = baseApi.injectEndpoints({
 						}
 					};
 
-					socket.on("chat:user-joined", onUserJoinedChat);
-					socket.on("chat:unread-increment", onUnreadIncrement);
-					socket.on("chat:messages-read", onMessagesRead);
+					socket.on(WEBSOCKET_EVENTS.USER_JOINED_CHAT, onUserJoinedChat);
+					socket.on(WEBSOCKET_EVENTS.UNREAD_INCREMENT, onUnreadIncrement);
+					socket.on(WEBSOCKET_EVENTS.MESSAGES_READ, onMessagesRead);
 
 					await cacheEntryRemoved;
 
-					socket.off("chat:user-joined", onUserJoinedChat);
-					socket.off("chat:unread-increment", onUnreadIncrement);
-					socket.off("chat:messages-read", onMessagesRead);
+					socket.off(WEBSOCKET_EVENTS.USER_JOINED_CHAT, onUserJoinedChat);
+					socket.off(WEBSOCKET_EVENTS.UNREAD_INCREMENT, onUnreadIncrement);
+					socket.off(WEBSOCKET_EVENTS.MESSAGES_READ, onMessagesRead);
 				} catch {
 					// Cache entry was removed before data loaded
 				}
@@ -353,20 +353,20 @@ export const chatApi = baseApi.injectEndpoints({
 						});
 					};
 
-					socket.on("chat:new-message", onNewMessage);
-					socket.on("chat:message-updated", onMessageUpdated);
-					socket.on("chat:message-deleted", onMessageDeleted);
-					socket.on("chat:message-read", onMessageRead);
-					socket.on("chat:messages-read", onMessagesRead);
+					socket.on(WEBSOCKET_EVENTS.NEW_MESSAGE, onNewMessage);
+					socket.on(WEBSOCKET_EVENTS.MESSAGE_UPDATED, onMessageUpdated);
+					socket.on(WEBSOCKET_EVENTS.MESSAGE_DELETED, onMessageDeleted);
+					socket.on(WEBSOCKET_EVENTS.MESSAGE_READ, onMessageRead);
+					socket.on(WEBSOCKET_EVENTS.MESSAGES_READ, onMessagesRead);
 
 					await cacheEntryRemoved;
 
 					leaveRoom(`chat:${chatId}`);
-					socket.off("chat:new-message", onNewMessage);
-					socket.off("chat:message-updated", onMessageUpdated);
-					socket.off("chat:message-deleted", onMessageDeleted);
-					socket.off("chat:message-read", onMessageRead);
-					socket.off("chat:messages-read", onMessagesRead);
+					socket.off(WEBSOCKET_EVENTS.NEW_MESSAGE, onNewMessage);
+					socket.off(WEBSOCKET_EVENTS.MESSAGE_UPDATED, onMessageUpdated);
+					socket.off(WEBSOCKET_EVENTS.MESSAGE_DELETED, onMessageDeleted);
+					socket.off(WEBSOCKET_EVENTS.MESSAGE_READ, onMessageRead);
+					socket.off(WEBSOCKET_EVENTS.MESSAGES_READ, onMessagesRead);
 				} catch {
 					// Cache entry was removed before data loaded
 				}
@@ -376,12 +376,13 @@ export const chatApi = baseApi.injectEndpoints({
 		// ============ PRESENCE (Typing & Online Status) ============
 
 		/**
-		 * Chat presence state - typing users and online users
+		 * Chat presence state - typing users only
+		 * Online status is now handled by global presence (getAdminPresence/getUsersPresence)
 		 * No REST endpoint, purely socket-driven
 		 */
 		getChatPresence: builder.query<ChatPresence, string>({
 			// No actual API call - data is socket-driven
-			queryFn: () => ({ data: { typingUsers: [], onlineUsers: [] } }),
+			queryFn: () => ({ data: { typingUsers: [] } }),
 
 			async onCacheEntryAdded(
 				chatId,
@@ -425,41 +426,134 @@ export const chatApi = baseApi.injectEndpoints({
 						});
 					};
 
-					const onUserOnline = (payload: {
-						data: { chatId: string; userId: string };
+					socket.on(WEBSOCKET_EVENTS.USER_TYPING, onUserTyping);
+					socket.on(WEBSOCKET_EVENTS.USER_STOPPED_TYPING, onUserStoppedTyping);
+					socket.on(WEBSOCKET_EVENTS.NEW_MESSAGE, onNewMessage);
+
+					await cacheEntryRemoved;
+
+					socket.off(WEBSOCKET_EVENTS.USER_TYPING, onUserTyping);
+					socket.off(WEBSOCKET_EVENTS.USER_STOPPED_TYPING, onUserStoppedTyping);
+					socket.off(WEBSOCKET_EVENTS.NEW_MESSAGE, onNewMessage);
+				} catch {
+					// Cache entry was removed before data loaded
+				}
+			},
+		}),
+
+		// ============ GLOBAL PRESENCE (User-Level Online Status) ============
+
+		/**
+		 * Admin presence - for regular users
+		 * Returns whether any admin is currently online
+		 * Uses socket streaming for real-time updates
+		 */
+		getAdminPresence: builder.query<{ isAdminOnline: boolean }, void>({
+			queryFn: () => ({ data: { isAdminOnline: false } }),
+
+			async onCacheEntryAdded(
+				_arg,
+				{ updateCachedData, cacheDataLoaded, cacheEntryRemoved },
+			) {
+				const socket = getSocket();
+
+				try {
+					await cacheDataLoaded;
+
+					// Request initial status
+					socket.emit(WEBSOCKET_EVENTS.GET_PRESENCE, {});
+
+					const onPresenceStatus = (payload: {
+						data: { isAdminOnline?: boolean };
 					}) => {
-						if (payload.data.chatId !== chatId) return;
+						if (payload.data.isAdminOnline !== undefined) {
+							updateCachedData(() => ({
+								isAdminOnline: payload.data.isAdminOnline!,
+							}));
+						}
+					};
+
+					const onAdminOnline = () => {
+						updateCachedData(() => ({ isAdminOnline: true }));
+					};
+
+					const onAdminOffline = () => {
+						// Re-query - might be another admin still online
+						socket.emit(WEBSOCKET_EVENTS.GET_PRESENCE, {});
+					};
+
+					socket.on(WEBSOCKET_EVENTS.PRESENCE_STATUS, onPresenceStatus);
+					socket.on(WEBSOCKET_EVENTS.PRESENCE_ADMIN_ONLINE, onAdminOnline);
+					socket.on(WEBSOCKET_EVENTS.PRESENCE_ADMIN_OFFLINE, onAdminOffline);
+
+					await cacheEntryRemoved;
+
+					socket.off(WEBSOCKET_EVENTS.PRESENCE_STATUS, onPresenceStatus);
+					socket.off(WEBSOCKET_EVENTS.PRESENCE_ADMIN_ONLINE, onAdminOnline);
+					socket.off(WEBSOCKET_EVENTS.PRESENCE_ADMIN_OFFLINE, onAdminOffline);
+				} catch {
+					// Cache entry was removed before data loaded
+				}
+			},
+		}),
+
+		/**
+		 * Users presence - for admin sidebar
+		 * Returns which users from the list are currently online
+		 * Uses socket streaming for real-time updates
+		 */
+		getUsersPresence: builder.query<{ onlineUserIds: string[] }, string[]>({
+			queryFn: () => ({ data: { onlineUserIds: [] } }),
+
+			async onCacheEntryAdded(
+				userIds,
+				{ updateCachedData, cacheDataLoaded, cacheEntryRemoved },
+			) {
+				const socket = getSocket();
+
+				try {
+					await cacheDataLoaded;
+
+					// Request initial status for these users
+					if (userIds.length > 0) {
+						socket.emit(WEBSOCKET_EVENTS.GET_PRESENCE, { userIds });
+					}
+
+					const onPresenceStatus = (payload: {
+						data: { onlineUserIds?: string[] };
+					}) => {
+						if (payload.data.onlineUserIds) {
+							updateCachedData(() => ({
+								onlineUserIds: payload.data.onlineUserIds!,
+							}));
+						}
+					};
+
+					const onUserOnline = (payload: { data: { userId: string } }) => {
 						updateCachedData((draft) => {
-							if (!draft.onlineUsers.includes(payload.data.userId)) {
-								draft.onlineUsers.push(payload.data.userId);
+							if (!draft.onlineUserIds.includes(payload.data.userId)) {
+								draft.onlineUserIds.push(payload.data.userId);
 							}
 						});
 					};
 
-					const onUserOffline = (payload: {
-						data: { chatId: string; userId: string };
-					}) => {
-						if (payload.data.chatId !== chatId) return;
+					const onUserOffline = (payload: { data: { userId: string } }) => {
 						updateCachedData((draft) => {
-							draft.onlineUsers = draft.onlineUsers.filter(
+							draft.onlineUserIds = draft.onlineUserIds.filter(
 								(id) => id !== payload.data.userId,
 							);
 						});
 					};
 
-					socket.on("chat:user-typing", onUserTyping);
-					socket.on("chat:user-stopped-typing", onUserStoppedTyping);
-					socket.on("chat:new-message", onNewMessage);
-					socket.on("chat:user-online", onUserOnline);
-					socket.on("chat:user-offline", onUserOffline);
+					socket.on(WEBSOCKET_EVENTS.PRESENCE_STATUS, onPresenceStatus);
+					socket.on(WEBSOCKET_EVENTS.PRESENCE_USER_ONLINE, onUserOnline);
+					socket.on(WEBSOCKET_EVENTS.PRESENCE_USER_OFFLINE, onUserOffline);
 
 					await cacheEntryRemoved;
 
-					socket.off("chat:user-typing", onUserTyping);
-					socket.off("chat:user-stopped-typing", onUserStoppedTyping);
-					socket.off("chat:new-message", onNewMessage);
-					socket.off("chat:user-online", onUserOnline);
-					socket.off("chat:user-offline", onUserOffline);
+					socket.off(WEBSOCKET_EVENTS.PRESENCE_STATUS, onPresenceStatus);
+					socket.off(WEBSOCKET_EVENTS.PRESENCE_USER_ONLINE, onUserOnline);
+					socket.off(WEBSOCKET_EVENTS.PRESENCE_USER_OFFLINE, onUserOffline);
 				} catch {
 					// Cache entry was removed before data loaded
 				}
@@ -686,6 +780,8 @@ export const {
 	useGetChatByIdQuery,
 	useGetChatMessagesQuery,
 	useGetChatPresenceQuery,
+	useGetAdminPresenceQuery,
+	useGetUsersPresenceQuery,
 	useSendMessageMutation,
 	useUpdateMessageMutation,
 	useDeleteMessageMutation,
