@@ -143,15 +143,30 @@ export const chatApi = baseApi.injectEndpoints({
 						}
 					};
 
+					// Message deleted - update lastMessage.isDeleted in sidebar
+					// This handles users who receive the event via their personal room (not viewing the chat)
+					const onMessageDeleted = (payload: {
+						data: { id: string; chatId: string; isDeleted: boolean };
+					}) => {
+						updateCachedData((draft) => {
+							const chat = draft.find((c) => c.id === payload.data.chatId);
+							if (chat?.lastMessage?.id === payload.data.id) {
+								chat.lastMessage.isDeleted = true;
+							}
+						});
+					};
+
 					socket.on(WEBSOCKET_EVENTS.USER_JOINED_CHAT, onUserJoinedChat);
 					socket.on(WEBSOCKET_EVENTS.UNREAD_INCREMENT, onUnreadIncrement);
 					socket.on(WEBSOCKET_EVENTS.MESSAGES_READ, onMessagesRead);
+					socket.on(WEBSOCKET_EVENTS.MESSAGE_DELETED, onMessageDeleted);
 
 					await cacheEntryRemoved;
 
 					socket.off(WEBSOCKET_EVENTS.USER_JOINED_CHAT, onUserJoinedChat);
 					socket.off(WEBSOCKET_EVENTS.UNREAD_INCREMENT, onUnreadIncrement);
 					socket.off(WEBSOCKET_EVENTS.MESSAGES_READ, onMessagesRead);
+					socket.off(WEBSOCKET_EVENTS.MESSAGE_DELETED, onMessageDeleted);
 				} catch {
 					// Cache entry was removed before data loaded
 				}
@@ -293,17 +308,28 @@ export const chatApi = baseApi.injectEndpoints({
 					};
 
 					// Message deleted
-					const onMessageDeleted = (payload: {
-						data: { messageId: string };
-					}) => {
+					const onMessageDeleted = (payload: { data: Message }) => {
+						if (payload.data.chatId !== chatId) return;
 						updateCachedData((draft) => {
-							const idx = draft.data.findIndex(
-								(m) => m.id === payload.data.messageId,
-							);
+							const idx = draft.data.findIndex((m) => m.id === payload.data.id);
 							if (idx !== -1) {
 								draft.data[idx].isDeleted = true;
 							}
 						});
+
+						// Also update sidebar: mark lastMessage as deleted if it matches
+						dispatch(
+							chatApi.util.updateQueryData(
+								"getUserChats",
+								undefined,
+								(draft) => {
+									const chat = draft.find((c) => c.id === chatId);
+									if (chat?.lastMessage?.id === payload.data.id) {
+										chat.lastMessage.isDeleted = true;
+									}
+								},
+							),
+						);
 					};
 
 					// Message read - single message
@@ -746,7 +772,7 @@ export const chatApi = baseApi.injectEndpoints({
 				{ chatId, messageId },
 				{ dispatch, queryFulfilled },
 			) {
-				// Optimistically mark message as deleted
+				// Optimistically mark message as deleted in message list
 				const patchResult = dispatch(
 					chatApi.util.updateQueryData(
 						"getChatMessages",
@@ -761,11 +787,22 @@ export const chatApi = baseApi.injectEndpoints({
 					),
 				);
 
+				// Optimistically update sidebar lastMessage if this was the last message
+				const sidebarPatchResult = dispatch(
+					chatApi.util.updateQueryData("getUserChats", undefined, (draft) => {
+						const chat = draft.find((c) => c.id === chatId);
+						if (chat?.lastMessage?.id === messageId) {
+							chat.lastMessage.isDeleted = true;
+						}
+					}),
+				);
+
 				try {
 					await queryFulfilled;
 				} catch {
 					// Rollback on error
 					patchResult.undo();
+					sidebarPatchResult.undo();
 				}
 			},
 		}),

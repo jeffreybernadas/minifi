@@ -456,8 +456,13 @@ export default function AdminChatPage() {
 													size="xs"
 													fw={hasUnread ? 700 : 400}
 													lineClamp={1}
+													fs={
+														chat.lastMessage?.isDeleted ? "italic" : undefined
+													}
 												>
-													{chat.lastMessage?.content || "No messages yet"}
+													{chat.lastMessage?.isDeleted
+														? "This message was deleted"
+														: chat.lastMessage?.content || "No messages yet"}
 												</Text>
 												<Text size="xs" c="dimmed" lineClamp={1}>
 													<TimeAgo

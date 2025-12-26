@@ -76,8 +76,6 @@ export const isSocketConnected = (): boolean => {
 	return socket?.connected ?? false;
 };
 
-// ============ Room Management ============
-
 /**
  * Join a socket room.
  * Used for chat rooms: `chat:{chatId}` or user rooms: `user:{userId}`
@@ -86,6 +84,11 @@ export const joinRoom = (room: string): void => {
 	const s = getSocket();
 	if (s.connected) {
 		s.emit(WEBSOCKET_EVENTS.JOIN_ROOM, { room });
+	} else {
+		// Retry once connected
+		s.once("connect", () => {
+			s.emit(WEBSOCKET_EVENTS.JOIN_ROOM, { room });
+		});
 	}
 };
 

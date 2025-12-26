@@ -68,13 +68,23 @@ export interface MessageBubbleProps {
 
 function MessageMenu({
 	isMe,
+	createdAt,
 	setIsEditing,
 	handleDelete,
 }: Readonly<{
 	isMe: boolean;
+	createdAt: string;
 	setIsEditing: (value: boolean) => void;
 	handleDelete: () => void;
 }>) {
+	// Check if message is within 10 minutes (same as backend validation)
+	const messageAge = Date.now() - new Date(createdAt).getTime();
+	const tenMinutesMs = 10 * 60 * 1000;
+	const canModify = messageAge < tenMinutesMs;
+
+	// Don't show menu at all if no actions available
+	if (!canModify) return null;
+
 	return (
 		<Menu position={isMe ? "bottom-end" : "bottom-start"} zIndex={1001}>
 			<Menu.Target>
@@ -251,6 +261,7 @@ export function MessageBubble({
 						{isMe && (
 							<MessageMenu
 								isMe={isMe}
+								createdAt={message.createdAt}
 								setIsEditing={setIsEditing}
 								handleDelete={handleDelete}
 							/>
