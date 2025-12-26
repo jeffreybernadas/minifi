@@ -177,7 +177,7 @@ export function MessageInput({
 							},
 						}}
 					/>
-					<Tooltip label="Send message (Enter)" position="top">
+					<Tooltip label="Send message (Enter)" position="top" zIndex={1001}>
 						<ActionIcon
 							variant="filled"
 							color="blue"

@@ -17,6 +17,7 @@ import {
 	useCallback,
 	useEffect,
 	useLayoutEffect,
+	useMemo,
 	useRef,
 	useState,
 } from "react";
@@ -36,16 +37,21 @@ import { MessageInput } from "@/components/chat/MessageInput/MessageInput";
 import { TypingIndicator } from "@/components/chat/TypingIndicator/TypingIndicator";
 import { useAuth } from "@/hooks";
 import { emitMessagesRead, isSocketConnected } from "@/lib/socket";
-import type { Chat, Message } from "@/types";
+import type { Chat, ChatMember, Message } from "@/types";
+import { UserDetailDrawer } from "./components/UserDetailDrawer";
 
 export default function AdminChatPage() {
 	const { user, isAdmin } = useAuth();
 	const dispatch = useAppDispatch();
 	const viewport = useRef<HTMLDivElement>(null);
 	const prevMessagesLengthRef = useRef(0);
+	const isNearBottomRef = useRef(true);
+	const isLoadingOlderRef = useRef(false);
 
 	const [activeChatId, setActiveChatId] = useState<string | null>(null);
 	const [replyingTo, setReplyingTo] = useState<Message | null>(null);
+	const [cursor, setCursor] = useState<string | undefined>(undefined);
+	const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
 
 	// Fetch all chats for admin
 	const { data: chats = [], isLoading: chatsLoading } = useGetUserChatsQuery(
@@ -53,9 +59,15 @@ export default function AdminChatPage() {
 		{ skip: !isAdmin },
 	);
 
-	// Fetch messages for active chat
-	const { data: messagesData, isLoading: messagesLoading } =
-		useGetChatMessagesQuery({ chatId: activeChatId! }, { skip: !activeChatId });
+	// Fetch messages for active chat with cursor pagination
+	const {
+		data: messagesData,
+		isLoading: messagesLoading,
+		isFetching,
+	} = useGetChatMessagesQuery(
+		{ chatId: activeChatId!, cursor },
+		{ skip: !activeChatId },
+	);
 
 	// Get typing/online presence for active chat
 	const { data: presence } = useGetChatPresenceQuery(activeChatId!, {
@@ -63,8 +75,11 @@ export default function AdminChatPage() {
 	});
 
 	const messages = messagesData?.data ?? [];
+	const hasMoreMessages = messagesData?.meta?.hasNextPage ?? false;
+	const nextCursor = messagesData?.meta?.nextCursor;
 	const typingUsers = presence?.typingUsers ?? [];
 	const onlineUsers = presence?.onlineUsers ?? [];
+	const isTyping = typingUsers.length > 0;
 
 	// Mutations
 	const [sendMessage] = useSendMessageMutation();
@@ -86,13 +101,23 @@ export default function AdminChatPage() {
 
 	// Auto-scroll when new messages arrive (only if near bottom)
 	useLayoutEffect(() => {
+		// Skip auto-scroll when loading older messages
+		if (isLoadingOlderRef.current) {
+			isLoadingOlderRef.current = false;
+			prevMessagesLengthRef.current = messages.length;
+			return;
+		}
+
 		// Skip if this is initial load (handled above)
 		if (prevMessagesLengthRef.current === 0) {
 			prevMessagesLengthRef.current = messages.length;
 			return;
 		}
 
-		if (messages.length > prevMessagesLengthRef.current) {
+		if (
+			messages.length > prevMessagesLengthRef.current &&
+			isNearBottomRef.current
+		) {
 			viewport.current?.scrollTo({
 				top: viewport.current.scrollHeight,
 				behavior: "smooth",
@@ -100,6 +125,18 @@ export default function AdminChatPage() {
 		}
 		prevMessagesLengthRef.current = messages.length;
 	}, [messages.length]);
+
+	// Auto-scroll when typing indicator or reply preview appears
+	useLayoutEffect(() => {
+		if ((isTyping || replyingTo) && isNearBottomRef.current) {
+			requestAnimationFrame(() => {
+				viewport.current?.scrollTo({
+					top: viewport.current.scrollHeight,
+					behavior: "smooth",
+				});
+			});
+		}
+	}, [isTyping, replyingTo]);
 
 	// Emit read events for unread messages when chat is selected
 	useEffect(() => {
@@ -124,6 +161,8 @@ export default function AdminChatPage() {
 	const handleSelectChat = useCallback(
 		(chat: Chat) => {
 			setReplyingTo(null);
+			setCursor(undefined); // Reset cursor for new chat
+			prevMessagesLengthRef.current = 0; // Reset for initial scroll
 			setActiveChatId(chat.id);
 			// Mark as read when selecting - optimistically update cache and emit socket event
 			if ((chat.unreadCount ?? 0) > 0 && user?.id) {
@@ -183,6 +222,33 @@ export default function AdminChatPage() {
 		setReplyingTo(message);
 	}, []);
 
+	// Handle scroll for infinite scroll and position tracking
+	const handleScroll = useCallback(
+		({ y }: { x: number; y: number }) => {
+			const v = viewport.current;
+			if (!v) return;
+
+			// Track if user is near bottom (within 100px)
+			const distanceFromBottom = v.scrollHeight - y - v.clientHeight;
+			isNearBottomRef.current = distanceFromBottom < 100;
+
+			// Infinite scroll - load more when near top (scrollTop < 50px)
+			if (y < 50 && hasMoreMessages && !isFetching && nextCursor) {
+				isLoadingOlderRef.current = true;
+				setCursor(nextCursor);
+			}
+		},
+		[hasMoreMessages, isFetching, nextCursor],
+	);
+
+	const handleViewDetails = useCallback((user: ChatMember | null) => {
+		setSelectedUserId(user?.userId ?? null);
+	}, []);
+
+	const handleCloseDrawer = useCallback(() => {
+		setSelectedUserId(null);
+	}, []);
+
 	const getOtherMember = (chat: Chat) => {
 		return chat.members?.[0] ?? null;
 	};
@@ -196,10 +262,21 @@ export default function AdminChatPage() {
 	}
 
 	const activeChat = chats.find((c) => c.id === activeChatId);
-	const activeMember = activeChat ? getOtherMember(activeChat) : null;
+	const activeMember = activeChat ? getOtherMember(activeChat) : undefined;
 	const isUserOnline = activeMember
 		? onlineUsers.includes(activeMember.userId)
 		: false;
+
+	// Build userNames map for typing indicator
+	const userNames = useMemo(() => {
+		const names: Record<string, string> = {};
+		if (activeChat?.members) {
+			for (const member of activeChat.members) {
+				names[member.userId] = member.displayName || member.email || "User";
+			}
+		}
+		return names;
+	}, [activeChat?.members]);
 
 	return (
 		<Box
@@ -387,6 +464,8 @@ export default function AdminChatPage() {
 										radius="xl"
 										size="md"
 										color="white"
+										style={{ cursor: "pointer" }}
+										onClick={() => handleViewDetails(activeMember!)}
 									>
 										{activeMember?.displayName?.charAt(0).toUpperCase() || "?"}
 									</Avatar>
@@ -418,7 +497,12 @@ export default function AdminChatPage() {
 
 						{/* Messages Area */}
 						<Box style={{ flex: 1, position: "relative", overflow: "hidden" }}>
-							<ScrollArea h="100%" viewportRef={viewport} p="md">
+							<ScrollArea
+								h="100%"
+								viewportRef={viewport}
+								p="md"
+								onScrollPositionChange={handleScroll}
+							>
 								{messagesLoading ? (
 									<Center h="100%">
 										<Loader size="md" />
@@ -433,6 +517,12 @@ export default function AdminChatPage() {
 									</Center>
 								) : (
 									<Stack gap="md">
+										{/* Loader at top when fetching older messages */}
+										{isFetching && cursor && (
+											<Center py="xs">
+												<Loader size="sm" />
+											</Center>
+										)}
 										{messages.map((msg, index) => (
 											<MessageBubble
 												key={msg.id}
@@ -445,8 +535,16 @@ export default function AdminChatPage() {
 												onEdit={handleEdit}
 												onDelete={handleDelete}
 												onReply={handleReply}
-												senderName={activeMember?.displayName as string}
-												senderAvatarUrl={activeMember?.avatarUrl}
+												senderName={
+													msg.senderId !== user?.id
+														? (activeMember?.displayName as string | undefined)
+														: undefined
+												}
+												senderAvatarUrl={
+													msg.senderId !== user?.id
+														? activeMember?.avatarUrl
+														: undefined
+												}
 											/>
 										))}
 									</Stack>
@@ -455,7 +553,7 @@ export default function AdminChatPage() {
 						</Box>
 
 						{/* Typing Indicator - outside scroll so always visible */}
-						<TypingIndicator typingUsers={typingUsers} />
+						<TypingIndicator typingUsers={typingUsers} userNames={userNames} />
 
 						{/* Input Area */}
 						<MessageInput
@@ -481,6 +579,16 @@ export default function AdminChatPage() {
 					</Center>
 				)}
 			</Box>
+
+			<UserDetailDrawer
+				userId={selectedUserId}
+				disableActions
+				onClose={handleCloseDrawer}
+				onChangeTier={() => {}}
+				onBlock={() => {}}
+				onUnblock={() => {}}
+				onDelete={() => {}}
+			/>
 		</Box>
 	);
 }

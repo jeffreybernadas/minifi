@@ -1,8 +1,8 @@
 import { Container, AppShell as MantineAppShell } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { Outlet } from "react-router-dom";
-import { useAppSelector } from "@/app/hooks";
 import { useGetUserProfileQuery } from "@/app/api/user.api";
+import { useAppSelector } from "@/app/hooks";
 import { ChatWidget } from "@/components/chat";
 import { Footer } from "../Footer";
 import { Header } from "../Header";

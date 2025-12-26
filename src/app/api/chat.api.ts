@@ -1,7 +1,7 @@
 import { getSocket, joinRoom, leaveRoom } from "@/lib/socket";
 import type { Chat, Message, SendMessageDto } from "@/types";
-import { baseApi } from "./base.api";
 import type { RootState } from "../store";
+import { baseApi } from "./base.api";
 
 // ============ DTOs ============
 

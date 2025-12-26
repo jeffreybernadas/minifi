@@ -40,6 +40,7 @@ interface UserDetailDrawerProps {
 	onBlock: (user: AdminUserDetail) => void;
 	onUnblock: (user: AdminUserDetail) => void;
 	onDelete: (user: AdminUserDetail) => void;
+	disableActions?: boolean;
 }
 
 /**
@@ -71,7 +72,9 @@ const formatDateTime = (date: string) => {
  */
 const getUserInitials = (user: AdminUserDetail): string => {
 	if (user.firstName && user.lastName) {
-		return `${user.firstName.charAt(0)}${user.lastName.charAt(0)}`.toUpperCase();
+		return `${user.firstName.charAt(0)}${user.lastName.charAt(
+			0,
+		)}`.toUpperCase();
 	}
 	if (user.firstName) {
 		return user.firstName.charAt(0).toUpperCase();
@@ -165,6 +168,7 @@ export function UserDetailDrawer({
 	onBlock,
 	onUnblock,
 	onDelete,
+	disableActions,
 }: UserDetailDrawerProps) {
 	const {
 		data: user,
@@ -409,48 +413,50 @@ export function UserDetailDrawer({
 					<Divider />
 
 					{/* Actions Section */}
-					<Stack gap="xs">
-						<Text size="sm" fw={600} c="dimmed" tt="uppercase">
-							Actions
-						</Text>
-						<Group grow>
+					{!disableActions && (
+						<Stack gap="xs">
+							<Text size="sm" fw={600} c="dimmed" tt="uppercase">
+								Actions
+							</Text>
+							<Group grow>
+								<Button
+									variant="light"
+									leftSection={<IconCrown size={16} />}
+									onClick={() => onChangeTier(user)}
+								>
+									Change Tier
+								</Button>
+								{user.isBlocked ? (
+									<Button
+										variant="light"
+										color="green"
+										leftSection={<IconLockOpen size={16} />}
+										onClick={() => onUnblock(user)}
+									>
+										Unblock
+									</Button>
+								) : (
+									<Button
+										variant="light"
+										color="orange"
+										leftSection={<IconBan size={16} />}
+										onClick={() => onBlock(user)}
+									>
+										Block
+									</Button>
+								)}
+							</Group>
 							<Button
 								variant="light"
-								leftSection={<IconCrown size={16} />}
-								onClick={() => onChangeTier(user)}
+								color="red"
+								leftSection={<IconTrash size={16} />}
+								onClick={() => onDelete(user)}
+								fullWidth
 							>
-								Change Tier
+								Delete User
 							</Button>
-							{user.isBlocked ? (
-								<Button
-									variant="light"
-									color="green"
-									leftSection={<IconLockOpen size={16} />}
-									onClick={() => onUnblock(user)}
-								>
-									Unblock
-								</Button>
-							) : (
-								<Button
-									variant="light"
-									color="orange"
-									leftSection={<IconBan size={16} />}
-									onClick={() => onBlock(user)}
-								>
-									Block
-								</Button>
-							)}
-						</Group>
-						<Button
-							variant="light"
-							color="red"
-							leftSection={<IconTrash size={16} />}
-							onClick={() => onDelete(user)}
-							fullWidth
-						>
-							Delete User
-						</Button>
-					</Stack>
+						</Stack>
+					)}
 				</Stack>
 			)}
 		</Drawer>
