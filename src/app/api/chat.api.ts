@@ -304,6 +304,13 @@ export const chatApi = baseApi.injectEndpoints({
 							if (idx !== -1) {
 								draft.data[idx] = payload.data;
 							}
+
+							// Also update any messages that reply to this edited message
+							draft.data.forEach((msg) => {
+								if (msg.replyToId === payload.data.id && msg.replyTo) {
+									msg.replyTo.content = payload.data.content;
+								}
+							});
 						});
 					};
 
@@ -315,6 +322,13 @@ export const chatApi = baseApi.injectEndpoints({
 							if (idx !== -1) {
 								draft.data[idx].isDeleted = true;
 							}
+
+							// Also update any messages that reply to this deleted message
+							draft.data.forEach((msg) => {
+								if (msg.replyToId === payload.data.id && msg.replyTo) {
+									msg.replyTo.isDeleted = true;
+								}
+							});
 						});
 
 						// Also update sidebar: mark lastMessage as deleted if it matches
@@ -743,6 +757,13 @@ export const chatApi = baseApi.injectEndpoints({
 								message.isEdited = true;
 								message.updatedAt = new Date().toISOString();
 							}
+
+							// Also update any messages that reply to this edited message
+							draft.data.forEach((msg) => {
+								if (msg.replyToId === messageId && msg.replyTo) {
+									msg.replyTo.content = data.content;
+								}
+							});
 						},
 					),
 				);
@@ -783,6 +804,13 @@ export const chatApi = baseApi.injectEndpoints({
 								message.isDeleted = true;
 								message.updatedAt = new Date().toISOString();
 							}
+
+							// Also update any messages that reply to this deleted message
+							draft.data.forEach((msg) => {
+								if (msg.replyToId === messageId && msg.replyTo) {
+									msg.replyTo.isDeleted = true;
+								}
+							});
 						},
 					),
 				);
