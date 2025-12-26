@@ -43,6 +43,11 @@ export interface MessageSender {
 	avatarUrl?: string | null;
 }
 
+export interface MessageReadReceipt {
+	userId: string;
+	readAt: string;
+}
+
 export interface Message {
 	id: string;
 	chatId: string;
@@ -55,6 +60,7 @@ export interface Message {
 	replyToId?: string | null;
 	replyTo?: ReplyTo | null;
 	sender?: MessageSender | null;
+	readBy?: MessageReadReceipt[];
 }
 
 export interface SendMessageDto {

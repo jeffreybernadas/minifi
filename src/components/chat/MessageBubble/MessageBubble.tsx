@@ -3,6 +3,7 @@ import {
 	Avatar,
 	Flex,
 	Group,
+	Loader,
 	Menu,
 	Paper,
 	Stack,
@@ -12,16 +13,45 @@ import {
 } from "@mantine/core";
 import {
 	IconCheck,
+	IconChecks,
 	IconCornerUpLeft,
 	IconDots,
 	IconEdit,
 	IconTrash,
 	IconX,
 } from "@tabler/icons-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import TimeAgo from "react-timeago";
 import { useAuth } from "@/hooks";
 import type { Message } from "@/types";
+
+type MessageStatus = "sending" | "sent" | "read";
+
+function MessageStatusIndicator({
+	status,
+	isMe,
+}: Readonly<{ status: MessageStatus; isMe: boolean }>) {
+	if (!isMe) return null;
+
+	if (status === "sending") {
+		return <Loader size={10} color="dimmed" />;
+	}
+
+	if (status === "read") {
+		return (
+			<Tooltip label="Read" position="top" zIndex={1001}>
+				<IconChecks size={14} color="var(--mantine-color-blue-5)" />
+			</Tooltip>
+		);
+	}
+
+	// sent
+	return (
+		<Tooltip label="Sent" position="top" zIndex={1001}>
+			<IconCheck size={14} color="var(--mantine-color-dimmed)" />
+		</Tooltip>
+	);
+}
 
 export interface MessageBubbleProps {
 	message: Message;
@@ -99,6 +129,20 @@ export function MessageBubble({
 	const [isEditing, setIsEditing] = useState(false);
 	const [editContent, setEditContent] = useState(message.content);
 
+	// Compute message status for own messages
+	const messageStatus = useMemo((): MessageStatus => {
+		// Temp messages are "sending"
+		if (message.id.startsWith("temp-")) {
+			return "sending";
+		}
+		// Messages with read receipts from others are "read"
+		if (message.readBy?.some((r) => r.userId !== message.senderId)) {
+			return "read";
+		}
+		// Otherwise "sent"
+		return "sent";
+	}, [message.id, message.readBy, message.senderId]);
+
 	const handleEdit = () => {
 		if (onEdit && editContent.trim() && editContent !== message.content) {
 			onEdit(message.id, editContent.trim());
@@ -138,7 +182,11 @@ export function MessageBubble({
 				)}
 				{!isMe && !showAvatar && <div style={{ width: 26 }} />}
 				<Stack gap={2} maw="75%">
-					<Flex gap="md" align="center">
+					<Flex
+						gap="md"
+						align="center"
+						direction={isMe ? "row" : "row-reverse"}
+					>
 						<ReplyArrow onReply={onReply} message={message} />
 						<Paper
 							p="xs"
@@ -146,8 +194,6 @@ export function MessageBubble({
 							bg="var(--mantine-color-gray-light)"
 							c="dimmed"
 							style={{
-								borderBottomRightRadius: isMe ? 0 : undefined,
-								borderBottomLeftRadius: !isMe ? 0 : undefined,
 								fontStyle: "italic",
 							}}
 						>
@@ -188,7 +234,12 @@ export function MessageBubble({
 			{!isMe && !showAvatar && <div style={{ width: 26 }} />}
 
 			<Stack gap={2} maw="75%" style={{ position: "relative" }}>
-				<Flex gap="md" direction={isMe ? "row" : "row-reverse"}>
+				<Flex
+					gap="md"
+					direction={isMe ? "row" : "row-reverse"}
+					align="center"
+					justify="flex-end"
+				>
 					<Group
 						gap={4}
 						style={{
@@ -214,6 +265,8 @@ export function MessageBubble({
 							boxShadow: isMe
 								? "0 1px 2px rgba(0,0,0,0.1)"
 								: "0 1px 2px rgba(0,0,0,0.05)",
+							opacity: messageStatus === "sending" ? 0.7 : 1,
+							transition: "opacity 0.2s ease",
 						}}
 					>
 						{isEditing ? (
@@ -277,14 +330,20 @@ export function MessageBubble({
 										mb="xs"
 										radius="sm"
 										style={{
-											borderLeft: "2px solid var(--mantine-color-blue-5)",
-											backgroundColor: "rgba(255,255,255,0.2)",
+											borderLeft: `2px solid ${
+												isMe
+													? "var(--mantine-color-blue-3)"
+													: "var(--mantine-color-blue-5)"
+											}`,
+											backgroundColor: isMe
+												? "rgba(255,255,255,0.2)"
+												: "rgba(0,0,0,0.15)",
 										}}
 									>
-										<Text size="xs" c={isMe ? "blue.1" : "blue.6"} fw={500}>
+										<Text size="xs" c={"blue.1"} fw={500}>
 											Replying to
 										</Text>
-										<Text size="xs" c={isMe ? "white" : "dark"} lineClamp={2}>
+										<Text size="xs" c={"white"} lineClamp={2}>
 											{message.replyTo.isDeleted
 												? "Deleted message"
 												: message.replyTo.content}
@@ -302,9 +361,11 @@ export function MessageBubble({
 					</Paper>
 				</Flex>
 				<Group gap={4} justify={isMe ? "flex-end" : "flex-start"}>
-					<Text size="xs" c="dimmed">
-						<TimeAgo date={message.createdAt} live />
-					</Text>
+					{messageStatus !== "sending" ? (
+						<Text size="xs" c="dimmed">
+							<TimeAgo date={message.createdAt} live />
+						</Text>
+					) : null}
 					{message.isEdited && !isEditing && (
 						<Tooltip
 							label={new Date(message.updatedAt).toLocaleString()}
@@ -315,6 +376,9 @@ export function MessageBubble({
 								(edited)
 							</Text>
 						</Tooltip>
+					)}
+					{isMe && !isEditing && (
+						<MessageStatusIndicator status={messageStatus} isMe={isMe} />
 					)}
 				</Group>
 			</Stack>

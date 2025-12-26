@@ -37,8 +37,10 @@ function App() {
 						dispatch(setAuthenticated(userInfo));
 
 						// Connect socket and join user's personal room
-						connectSocket();
-						joinRoom(`user:${userInfo.id}`);
+						// Must await connection before joining room
+						connectSocket().then(() => {
+							joinRoom(`user:${userInfo.id}`);
+						});
 					}
 				}
 

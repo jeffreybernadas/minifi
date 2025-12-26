@@ -40,14 +40,22 @@ export const getSocket = (): Socket => {
 /**
  * Connect the socket with current auth token.
  * Call this after successful Keycloak authentication.
+ * Returns a promise that resolves when connected.
  */
-export const connectSocket = (): void => {
-	const s = getSocket();
-	if (!s.connected) {
+export const connectSocket = (): Promise<void> => {
+	return new Promise((resolve) => {
+		const s = getSocket();
+		if (s.connected) {
+			resolve();
+			return;
+		}
 		// Update token before connecting
 		s.auth = { token: keycloak.token };
+		s.once("connect", () => {
+			resolve();
+		});
 		s.connect();
-	}
+	});
 };
 
 /**
@@ -139,5 +147,27 @@ export const emitMessagesRead = (
 	const s = getSocket();
 	if (s.connected && messageIds.length > 0) {
 		s.emit("chat:messages-read", { chatId, messageIds, userId });
+	}
+};
+
+// ============ Online Status ============
+
+/**
+ * Emit that user is online in a chat.
+ */
+export const emitUserOnline = (chatId: string, userId: string): void => {
+	const s = getSocket();
+	if (s.connected) {
+		s.emit("chat:user-online", { chatId, userId });
+	}
+};
+
+/**
+ * Emit that user is offline in a chat.
+ */
+export const emitUserOffline = (chatId: string, userId: string): void => {
+	const s = getSocket();
+	if (s.connected) {
+		s.emit("chat:user-offline", { chatId, userId });
 	}
 };

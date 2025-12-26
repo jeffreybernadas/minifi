@@ -13,26 +13,34 @@ import {
 } from "@mantine/core";
 import { upperFirst } from "@mantine/hooks";
 import { IconCircle, IconMessageCircle } from "@tabler/icons-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+	useCallback,
+	useEffect,
+	useLayoutEffect,
+	useRef,
+	useState,
+} from "react";
 import TimeAgo from "react-timeago";
 import {
+	chatApi,
 	useDeleteMessageMutation,
 	useGetChatMessagesQuery,
 	useGetChatPresenceQuery,
 	useGetUserChatsQuery,
-	useMarkChatAsReadMutation,
 	useSendMessageMutation,
 	useUpdateMessageMutation,
 } from "@/app/api/chat.api";
+import { useAppDispatch } from "@/app/hooks";
 import { MessageBubble } from "@/components/chat/MessageBubble/MessageBubble";
 import { MessageInput } from "@/components/chat/MessageInput/MessageInput";
 import { TypingIndicator } from "@/components/chat/TypingIndicator/TypingIndicator";
 import { useAuth } from "@/hooks";
-import { isSocketConnected } from "@/lib/socket";
+import { emitMessagesRead, isSocketConnected } from "@/lib/socket";
 import type { Chat, Message } from "@/types";
 
 export default function AdminChatPage() {
 	const { user, isAdmin } = useAuth();
+	const dispatch = useAppDispatch();
 	const viewport = useRef<HTMLDivElement>(null);
 	const prevMessagesLengthRef = useRef(0);
 
@@ -62,33 +70,74 @@ export default function AdminChatPage() {
 	const [sendMessage] = useSendMessageMutation();
 	const [updateMessage] = useUpdateMessageMutation();
 	const [deleteMessage] = useDeleteMessageMutation();
-	const [markChatAsRead] = useMarkChatAsReadMutation();
 
 	const isConnected = isSocketConnected();
 
-	// Auto-scroll when new messages arrive
-	useEffect(() => {
+	// Initial scroll to bottom when messages first load
+	useLayoutEffect(() => {
+		if (messages.length > 0 && prevMessagesLengthRef.current === 0) {
+			// First load - scroll to bottom immediately (no animation)
+			viewport.current?.scrollTo({
+				top: viewport.current.scrollHeight,
+				behavior: "instant",
+			});
+		}
+	}, [messages.length]);
+
+	// Auto-scroll when new messages arrive (only if near bottom)
+	useLayoutEffect(() => {
+		// Skip if this is initial load (handled above)
+		if (prevMessagesLengthRef.current === 0) {
+			prevMessagesLengthRef.current = messages.length;
+			return;
+		}
+
 		if (messages.length > prevMessagesLengthRef.current) {
-			setTimeout(() => {
-				viewport.current?.scrollTo({
-					top: viewport.current.scrollHeight,
-					behavior: "smooth",
-				});
-			}, 100);
+			viewport.current?.scrollTo({
+				top: viewport.current.scrollHeight,
+				behavior: "smooth",
+			});
 		}
 		prevMessagesLengthRef.current = messages.length;
 	}, [messages.length]);
+
+	// Emit read events for unread messages when chat is selected
+	useEffect(() => {
+		if (!activeChatId || !user?.id || !isConnected || messages.length === 0)
+			return;
+
+		// Find messages from other users that haven't been read by us
+		const unreadMessageIds = messages
+			.filter(
+				(m) =>
+					m.senderId !== user.id &&
+					!m.id.startsWith("temp-") &&
+					(!m.readBy || !m.readBy.some((r) => r.userId === user.id)),
+			)
+			.map((m) => m.id);
+
+		if (unreadMessageIds.length > 0) {
+			emitMessagesRead(activeChatId, unreadMessageIds, user.id);
+		}
+	}, [activeChatId, user?.id, isConnected, messages]);
 
 	const handleSelectChat = useCallback(
 		(chat: Chat) => {
 			setReplyingTo(null);
 			setActiveChatId(chat.id);
-			// Mark as read when selecting
-			if ((chat.unreadCount ?? 0) > 0) {
-				markChatAsRead(chat.id);
+			// Mark as read when selecting - optimistically update cache and emit socket event
+			if ((chat.unreadCount ?? 0) > 0 && user?.id) {
+				// Optimistically update unread count in cache
+				dispatch(
+					chatApi.util.updateQueryData("getUserChats", undefined, (draft) => {
+						const c = draft.find((c) => c.id === chat.id);
+						if (c) c.unreadCount = 0;
+					}),
+				);
+				// Note: We'll emit read events after messages load to get actual message IDs
 			}
 		},
-		[markChatAsRead],
+		[dispatch, user?.id],
 	);
 
 	const handleSend = useCallback(

@@ -31,8 +31,8 @@ import { getErrorMessage } from "@/types";
 import { getAdminLinkColumns } from "./columns";
 import {
 	ADMIN_LINK_STATUS_OPTIONS,
-	getAdminLinkStatsCards,
 	GUEST_OPTIONS,
+	getAdminLinkStatsCards,
 	SCAN_STATUS_OPTIONS,
 } from "./constants/links.constants";
 

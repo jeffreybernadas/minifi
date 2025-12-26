@@ -1,6 +1,7 @@
 import { Container, AppShell as MantineAppShell } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { Outlet } from "react-router-dom";
+import { useAppSelector } from "@/app/hooks";
 import { useGetUserProfileQuery } from "@/app/api/user.api";
 import { ChatWidget } from "@/components/chat";
 import { Footer } from "../Footer";
@@ -18,11 +19,13 @@ export function AppShell({ withSidebar = false }: AppShellProps) {
 	const { toggle: toggleMobile, close: closeMobile } = mobileHandlers;
 	const { toggle: toggleDesktop } = desktopHandlers;
 
-	// Pre-fetch user profile for authenticated pages (with sidebar)
-	// This ensures profile data is available for UserButton and other components
-	// Skip query if not authenticated (withSidebar=false)
+	// Check if user is authenticated
+	const { isAuthenticated } = useAppSelector((state) => state.auth);
+
+	// Pre-fetch user profile for ALL authenticated users (not just sidebar pages)
+	// This ensures isPro/isAdmin checks work correctly for ChatWidget
 	useGetUserProfileQuery(undefined, {
-		skip: !withSidebar,
+		skip: !isAuthenticated,
 	});
 
 	return (
@@ -51,13 +54,13 @@ export function AppShell({ withSidebar = false }: AppShellProps) {
 			</MantineAppShell.Header>
 
 			{withSidebar && (
-				<>
-					<MantineAppShell.Navbar>
-						<Sidebar onCloseMobile={closeMobile} />
-					</MantineAppShell.Navbar>
-					<ChatWidget />
-				</>
+				<MantineAppShell.Navbar>
+					<Sidebar onCloseMobile={closeMobile} />
+				</MantineAppShell.Navbar>
 			)}
+
+			{/* ChatWidget renders for all pages - it handles its own visibility (PRO users only) */}
+			<ChatWidget />
 
 			<MantineAppShell.Main>
 				{!withSidebar ? (

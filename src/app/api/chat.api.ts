@@ -1,6 +1,7 @@
 import { getSocket, joinRoom, leaveRoom } from "@/lib/socket";
 import type { Chat, Message, SendMessageDto } from "@/types";
 import { baseApi } from "./base.api";
+import type { RootState } from "../store";
 
 // ============ DTOs ============
 
@@ -21,18 +22,10 @@ export interface CursorPaginatedResponse<T> {
 	data: T[];
 	meta: {
 		itemsPerPage: number;
-		totalItems: number;
-		currentPage: number;
-		totalPages: number;
-		sortBy: [string, string][];
-		searchBy: string[];
-		search: string;
-		select: string[];
-		filter?: Record<string, string>;
 		hasPreviousPage: boolean;
 		hasNextPage: boolean;
-		startCursor?: string;
-		endCursor?: string;
+		nextCursor?: string;
+		previousCursor?: string;
 	};
 }
 
@@ -80,9 +73,11 @@ export const chatApi = baseApi.injectEndpoints({
 					: [{ type: "Chat", id: "LIST" }],
 
 			// STREAMING: Listen for socket events when query is active
+			// Events are received via user:${userId} room (joined on login in App.tsx)
+			// No need to join chat rooms here - backend emits to user's personal room
 			async onCacheEntryAdded(
 				_arg,
-				{ updateCachedData, cacheDataLoaded, cacheEntryRemoved },
+				{ updateCachedData, cacheDataLoaded, cacheEntryRemoved, getState },
 			) {
 				const socket = getSocket();
 
@@ -99,8 +94,12 @@ export const chatApi = baseApi.injectEndpoints({
 						});
 					};
 
-					// New message received - update lastMessage and unreadCount
-					const onNewMessage = (payload: { data: Message }) => {
+					// Unread increment - update lastMessage and unreadCount
+					// This event is only sent to user:${userId} room, separate from chat:new-message
+					const onUnreadIncrement = (payload: { data: Message }) => {
+						const state = getState() as RootState;
+						const isChatOpen = state.chat?.isOpen ?? false;
+
 						updateCachedData((draft) => {
 							const chat = draft.find((c) => c.id === payload.data.chatId);
 							if (chat) {
@@ -111,19 +110,44 @@ export const chatApi = baseApi.injectEndpoints({
 									isDeleted: payload.data.isDeleted,
 									createdAt: payload.data.createdAt,
 								};
-								chat.unreadCount = (chat.unreadCount ?? 0) + 1;
+								// Only increment unread if chat window is NOT open
+								// If open, user is seeing messages in real-time
+								if (!isChatOpen) {
+									chat.unreadCount = (chat.unreadCount ?? 0) + 1;
+								}
 								chat.updatedAt = payload.data.createdAt;
 							}
 						});
 					};
 
+					// Messages read - reset unread count when current user reads
+					const onMessagesRead = (payload: {
+						data: { chatId: string; messageIds: string[]; userId: string };
+					}) => {
+						const state = getState() as RootState;
+						const currentUserId = state.auth?.user?.id;
+
+						// Only reset if current user read the messages
+						if (payload.data.userId === currentUserId) {
+							updateCachedData((draft) => {
+								const chat = draft.find((c) => c.id === payload.data.chatId);
+								if (chat) {
+									// Reset unread count (user has read messages)
+									chat.unreadCount = 0;
+								}
+							});
+						}
+					};
+
 					socket.on("chat:user-joined", onUserJoinedChat);
-					socket.on("chat:new-message", onNewMessage);
+					socket.on("chat:unread-increment", onUnreadIncrement);
+					socket.on("chat:messages-read", onMessagesRead);
 
 					await cacheEntryRemoved;
 
 					socket.off("chat:user-joined", onUserJoinedChat);
-					socket.off("chat:new-message", onNewMessage);
+					socket.off("chat:unread-increment", onUnreadIncrement);
+					socket.off("chat:messages-read", onMessagesRead);
 				} catch {
 					// Cache entry was removed before data loaded
 				}
@@ -151,9 +175,18 @@ export const chatApi = baseApi.injectEndpoints({
 			query: ({ chatId, cursor }) => ({
 				url: `/chat/${chatId}/messages`,
 				params: {
-					limit: 10,
-					...(cursor && { before: cursor }), // Load older messages
+					limit: 20,
+					// DESC order = newest first (then we reverse for display)
+					order: "desc",
+					// Use afterCursor to load older messages (next page in DESC = older)
+					...(cursor && { afterCursor: cursor }),
 				},
+			}),
+
+			// Transform: API returns DESC (newest first), reverse for chat display (oldest at top, newest at bottom)
+			transformResponse: (response: CursorPaginatedResponse<Message>) => ({
+				...response,
+				data: [...response.data].reverse(),
 			}),
 
 			// KEY: serializeQueryArgs keeps all pages in ONE cache entry per chatId
@@ -219,7 +252,6 @@ export const chatApi = baseApi.injectEndpoints({
 							} else {
 								// New message from another user - add it
 								draft.data.push(payload.data);
-								draft.meta.totalItems += 1;
 							}
 						});
 					};
@@ -249,9 +281,56 @@ export const chatApi = baseApi.injectEndpoints({
 						});
 					};
 
+					// Message read - single message
+					const onMessageRead = (payload: {
+						data: { chatId: string; messageId: string; userId: string };
+					}) => {
+						if (payload.data.chatId !== chatId) return;
+						updateCachedData((draft) => {
+							const msg = draft.data.find(
+								(m) => m.id === payload.data.messageId,
+							);
+							if (msg) {
+								msg.readBy = msg.readBy || [];
+								// Avoid duplicates
+								if (!msg.readBy.some((r) => r.userId === payload.data.userId)) {
+									msg.readBy.push({
+										userId: payload.data.userId,
+										readAt: new Date().toISOString(),
+									});
+								}
+							}
+						});
+					};
+
+					// Messages read - batch
+					const onMessagesRead = (payload: {
+						data: { chatId: string; messageIds: string[]; userId: string };
+					}) => {
+						if (payload.data.chatId !== chatId) return;
+						updateCachedData((draft) => {
+							for (const msgId of payload.data.messageIds) {
+								const msg = draft.data.find((m) => m.id === msgId);
+								if (msg) {
+									msg.readBy = msg.readBy || [];
+									if (
+										!msg.readBy.some((r) => r.userId === payload.data.userId)
+									) {
+										msg.readBy.push({
+											userId: payload.data.userId,
+											readAt: new Date().toISOString(),
+										});
+									}
+								}
+							}
+						});
+					};
+
 					socket.on("chat:new-message", onNewMessage);
 					socket.on("chat:message-updated", onMessageUpdated);
 					socket.on("chat:message-deleted", onMessageDeleted);
+					socket.on("chat:message-read", onMessageRead);
+					socket.on("chat:messages-read", onMessagesRead);
 
 					await cacheEntryRemoved;
 
@@ -259,6 +338,8 @@ export const chatApi = baseApi.injectEndpoints({
 					socket.off("chat:new-message", onNewMessage);
 					socket.off("chat:message-updated", onMessageUpdated);
 					socket.off("chat:message-deleted", onMessageDeleted);
+					socket.off("chat:message-read", onMessageRead);
+					socket.off("chat:messages-read", onMessagesRead);
 				} catch {
 					// Cache entry was removed before data loaded
 				}
@@ -385,8 +466,7 @@ export const chatApi = baseApi.injectEndpoints({
 				// Get reply context from cache if replying
 				let replyTo: Message["replyTo"] = null;
 				if (data.replyToId) {
-					// eslint-disable-next-line @typescript-eslint/no-explicit-any
-					const state = getState() as any;
+					const state = getState() as RootState;
 					const messagesResult = chatApi.endpoints.getChatMessages.select({
 						chatId,
 					})(state);
@@ -424,7 +504,6 @@ export const chatApi = baseApi.injectEndpoints({
 						{ chatId },
 						(draft) => {
 							draft.data.push(tempMessage);
-							draft.meta.totalItems += 1;
 						},
 					),
 				);
@@ -536,33 +615,6 @@ export const chatApi = baseApi.injectEndpoints({
 				}
 			},
 		}),
-
-		/**
-		 * Mark a chat as read - reset unread count
-		 */
-		markChatAsRead: builder.mutation<void, string>({
-			query: (chatId) => ({
-				url: `/chat/${chatId}/read`,
-				method: "POST",
-			}),
-			// Optimistically reset unread count
-			async onQueryStarted(chatId, { dispatch, queryFulfilled }) {
-				const patchResult = dispatch(
-					chatApi.util.updateQueryData("getUserChats", undefined, (draft) => {
-						const chat = draft.find((c) => c.id === chatId);
-						if (chat) {
-							chat.unreadCount = 0;
-						}
-					}),
-				);
-
-				try {
-					await queryFulfilled;
-				} catch {
-					patchResult.undo();
-				}
-			},
-		}),
 	}),
 });
 
@@ -575,5 +627,4 @@ export const {
 	useSendMessageMutation,
 	useUpdateMessageMutation,
 	useDeleteMessageMutation,
-	useMarkChatAsReadMutation,
 } = chatApi;
