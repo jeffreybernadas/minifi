@@ -9,9 +9,8 @@ import {
 	ScrollArea,
 	Stack,
 	Text,
-	Tooltip,
 } from "@mantine/core";
-import { IconCircle, IconX } from "@tabler/icons-react";
+import { IconX } from "@tabler/icons-react";
 import {
 	useCallback,
 	useEffect,
@@ -309,41 +308,17 @@ export function ChatWindow() {
 						<Text c="white" fw={600} size="sm">
 							Support Chat
 						</Text>
-						{isAdminOnline && (
-							<Badge
-								size="xs"
-								color="green"
-								variant="filled"
-								leftSection={<IconCircle size={6} fill="white" color="white" />}
-							>
-								Online
-							</Badge>
-						)}
-					</Group>
-					<Group gap={4}>
-						<Text size="xs" c="blue.1">
-							{adminMember?.displayName || "Support Agent"}
-						</Text>
-						<Tooltip
-							label={isConnected ? "Connected" : "Connecting..."}
-							position="bottom"
+						<Badge
+							size="xs"
+							color={isAdminOnline ? "green" : "gray"}
+							variant="filled"
 						>
-							<IconCircle
-								size={6}
-								fill={
-									isConnected
-										? "var(--mantine-color-green-6)"
-										: "var(--mantine-color-yellow-6)"
-								}
-								color={
-									isConnected
-										? "var(--mantine-color-green-6)"
-										: "var(--mantine-color-yellow-6)"
-								}
-								style={{ filter: "drop-shadow(0 0 4px currentColor)" }}
-							/>
-						</Tooltip>
+							{isAdminOnline ? "Online" : "Offline"}
+						</Badge>
 					</Group>
+					<Text size="xs" c="blue.1">
+						{adminMember?.displayName || "Support Agent"}
+					</Text>
 				</Stack>
 				<ActionIcon
 					variant="transparent"

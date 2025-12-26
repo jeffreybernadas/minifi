@@ -99,6 +99,7 @@ export const chatApi = baseApi.injectEndpoints({
 					const onUnreadIncrement = (payload: { data: Message }) => {
 						const state = getState() as RootState;
 						const isChatOpen = state.chat?.isOpen ?? false;
+						const activeChatId = state.chat?.activeChatId ?? null;
 
 						updateCachedData((draft) => {
 							const chat = draft.find((c) => c.id === payload.data.chatId);
@@ -110,9 +111,12 @@ export const chatApi = baseApi.injectEndpoints({
 									isDeleted: payload.data.isDeleted,
 									createdAt: payload.data.createdAt,
 								};
-								// Only increment unread if chat window is NOT open
-								// If open, user is seeing messages in real-time
-								if (!isChatOpen) {
+								// Only increment unread if:
+								// 1. Chat window is NOT open (for user side), AND
+								// 2. This specific chat is NOT the active one (for admin side)
+								const isViewingThisChat =
+									isChatOpen || activeChatId === payload.data.chatId;
+								if (!isViewingThisChat) {
 									chat.unreadCount = (chat.unreadCount ?? 0) + 1;
 								}
 								chat.updatedAt = payload.data.createdAt;
@@ -219,7 +223,7 @@ export const chatApi = baseApi.injectEndpoints({
 			// STREAMING: Real-time updates via socket
 			async onCacheEntryAdded(
 				{ chatId },
-				{ updateCachedData, cacheDataLoaded, cacheEntryRemoved },
+				{ dispatch, updateCachedData, cacheDataLoaded, cacheEntryRemoved },
 			) {
 				const socket = getSocket();
 
@@ -254,6 +258,29 @@ export const chatApi = baseApi.injectEndpoints({
 								draft.data.push(payload.data);
 							}
 						});
+
+						// Also update sidebar: lastMessage and reset unread (user is viewing this chat)
+						dispatch(
+							chatApi.util.updateQueryData(
+								"getUserChats",
+								undefined,
+								(draft) => {
+									const chat = draft.find((c) => c.id === chatId);
+									if (chat) {
+										chat.lastMessage = {
+											id: payload.data.id,
+											content: payload.data.content,
+											senderId: payload.data.senderId,
+											isDeleted: payload.data.isDeleted,
+											createdAt: payload.data.createdAt,
+										};
+										// User is viewing this chat, so reset unread
+										chat.unreadCount = 0;
+										chat.updatedAt = payload.data.createdAt;
+									}
+								},
+							),
+						);
 					};
 
 					// Message edited
@@ -508,6 +535,23 @@ export const chatApi = baseApi.injectEndpoints({
 					),
 				);
 
+				// Optimistically update sidebar lastMessage
+				const sidebarPatchResult = dispatch(
+					chatApi.util.updateQueryData("getUserChats", undefined, (draft) => {
+						const chat = draft.find((c) => c.id === chatId);
+						if (chat) {
+							chat.lastMessage = {
+								id: tempMessage.id,
+								content: tempMessage.content,
+								senderId: tempMessage.senderId,
+								isDeleted: tempMessage.isDeleted,
+								createdAt: tempMessage.createdAt,
+							};
+							chat.updatedAt = tempMessage.createdAt;
+						}
+					}),
+				);
+
 				try {
 					// Wait for actual response
 					const { data: realMessage } = await queryFulfilled;
@@ -527,9 +571,27 @@ export const chatApi = baseApi.injectEndpoints({
 							},
 						),
 					);
+
+					// Update sidebar with real message data
+					dispatch(
+						chatApi.util.updateQueryData("getUserChats", undefined, (draft) => {
+							const chat = draft.find((c) => c.id === chatId);
+							if (chat) {
+								chat.lastMessage = {
+									id: realMessage.id,
+									content: realMessage.content,
+									senderId: realMessage.senderId,
+									isDeleted: realMessage.isDeleted,
+									createdAt: realMessage.createdAt,
+								};
+								chat.updatedAt = realMessage.createdAt;
+							}
+						}),
+					);
 				} catch {
 					// Rollback on error
 					patchResult.undo();
+					sidebarPatchResult.undo();
 				}
 			},
 		}),

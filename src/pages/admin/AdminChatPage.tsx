@@ -35,8 +35,14 @@ import { useAppDispatch } from "@/app/hooks";
 import { MessageBubble } from "@/components/chat/MessageBubble/MessageBubble";
 import { MessageInput } from "@/components/chat/MessageInput/MessageInput";
 import { TypingIndicator } from "@/components/chat/TypingIndicator/TypingIndicator";
+import { setActiveChat } from "@/features/chat/chat.slice";
 import { useAuth } from "@/hooks";
-import { emitMessagesRead, isSocketConnected } from "@/lib/socket";
+import {
+	emitMessagesRead,
+	emitUserOffline,
+	emitUserOnline,
+	isSocketConnected,
+} from "@/lib/socket";
 import type { Chat, ChatMember, Message } from "@/types";
 import { UserDetailDrawer } from "./components/UserDetailDrawer";
 
@@ -138,6 +144,17 @@ export default function AdminChatPage() {
 		}
 	}, [isTyping, replyingTo]);
 
+	// Emit online status when admin selects a chat
+	useEffect(() => {
+		if (activeChatId && user?.id && isConnected) {
+			emitUserOnline(activeChatId, user.id);
+
+			return () => {
+				emitUserOffline(activeChatId, user.id);
+			};
+		}
+	}, [activeChatId, user?.id, isConnected]);
+
 	// Emit read events for unread messages when chat is selected
 	useEffect(() => {
 		if (!activeChatId || !user?.id || !isConnected || messages.length === 0)
@@ -154,9 +171,19 @@ export default function AdminChatPage() {
 			.map((m) => m.id);
 
 		if (unreadMessageIds.length > 0) {
+			// Optimistically reset unread count in sidebar
+			dispatch(
+				chatApi.util.updateQueryData("getUserChats", undefined, (draft) => {
+					const chat = draft.find((c) => c.id === activeChatId);
+					if (chat) {
+						chat.unreadCount = 0;
+					}
+				}),
+			);
+			// Emit socket event to persist and notify other users
 			emitMessagesRead(activeChatId, unreadMessageIds, user.id);
 		}
-	}, [activeChatId, user?.id, isConnected, messages]);
+	}, [activeChatId, user?.id, isConnected, messages, dispatch]);
 
 	const handleSelectChat = useCallback(
 		(chat: Chat) => {
@@ -164,6 +191,8 @@ export default function AdminChatPage() {
 			setCursor(undefined); // Reset cursor for new chat
 			prevMessagesLengthRef.current = 0; // Reset for initial scroll
 			setActiveChatId(chat.id);
+			// Update Redux state so socket listener knows which chat is active
+			dispatch(setActiveChat(chat.id));
 			// Mark as read when selecting - optimistically update cache and emit socket event
 			if ((chat.unreadCount ?? 0) > 0 && user?.id) {
 				// Optimistically update unread count in cache
@@ -178,6 +207,13 @@ export default function AdminChatPage() {
 		},
 		[dispatch, user?.id],
 	);
+
+	// Clear active chat on unmount
+	useEffect(() => {
+		return () => {
+			dispatch(setActiveChat(null));
+		};
+	}, [dispatch]);
 
 	const handleSend = useCallback(
 		(content: string) => {
@@ -474,22 +510,14 @@ export default function AdminChatPage() {
 											<Text c="white" fw={600} size="sm">
 												{activeMember?.displayName || "Unknown User"}
 											</Text>
-											{isUserOnline && (
-												<Badge
-													size="xs"
-													color="green"
-													variant="filled"
-													leftSection={
-														<IconCircle size={6} fill="white" color="white" />
-													}
-												>
-													Online
-												</Badge>
-											)}
+											<Badge
+												size="xs"
+												color={isUserOnline ? "green" : "gray"}
+												variant="filled"
+											>
+												{isUserOnline ? "Online" : "Offline"}
+											</Badge>
 										</Group>
-										<Text c="blue.1" size="xs">
-											{isUserOnline ? "Active now" : "Offline"}
-										</Text>
 									</Stack>
 								</Group>
 							</Group>
@@ -503,7 +531,7 @@ export default function AdminChatPage() {
 								p="md"
 								onScrollPositionChange={handleScroll}
 							>
-								{messagesLoading ? (
+								{messagesLoading || (isFetching && !cursor) ? (
 									<Center h="100%">
 										<Loader size="md" />
 									</Center>
