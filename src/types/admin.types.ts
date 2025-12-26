@@ -196,6 +196,7 @@ export interface AdminLinkFilterDto {
 	isGuest?: boolean;
 	isArchived?: boolean;
 	userId?: string;
+	order?: "asc" | "desc";
 }
 
 /**

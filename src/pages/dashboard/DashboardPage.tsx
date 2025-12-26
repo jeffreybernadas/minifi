@@ -58,6 +58,7 @@ export default function DashboardPage() {
 	const { data, isLoading, isFetching } = useGetLinksQuery({
 		page,
 		limit,
+		order: "desc", // Sort by newest first
 		...(debouncedSearch && { search: debouncedSearch }),
 		...(status && { status: status as LinkStatus }),
 		...(isArchived && { isArchived: true }),
