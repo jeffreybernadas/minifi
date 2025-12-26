@@ -1,3 +1,4 @@
+import { modals } from "@mantine/modals";
 import {
 	type BaseQueryFn,
 	createApi,
@@ -5,10 +6,9 @@ import {
 	type FetchBaseQueryError,
 	fetchBaseQuery,
 } from "@reduxjs/toolkit/query/react";
-import { modals } from "@mantine/modals";
 import { createElement } from "react";
-import { VITE_API_BASE_URL } from "@/constants/env.constant";
 import { BlockedUserModalContent } from "@/components/common/BlockedUserModal";
+import { VITE_API_BASE_URL } from "@/constants/env.constant";
 import { clearAuth } from "@/features/auth/auth.slice";
 import { keycloak } from "@/features/auth/keycloak";
 

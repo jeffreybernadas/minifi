@@ -11,6 +11,7 @@ export const STATUS_OPTIONS = [
 	{ value: "ACTIVE", label: "Active" },
 	{ value: "SCHEDULED", label: "Scheduled" },
 	{ value: "DISABLED", label: "Disabled" },
+	{ value: "BLOCKED", label: "Blocked" },
 ];
 
 export interface StatsData {
@@ -36,6 +37,7 @@ export const getStatsCards = (data: StatsData): StatsCardConfig[] => [
 		value: data.totalLinks,
 		icon: IconLink,
 		iconColor: "blue",
+		description: "across all pages",
 	},
 	{
 		key: "active",
@@ -43,6 +45,7 @@ export const getStatsCards = (data: StatsData): StatsCardConfig[] => [
 		value: data.activeLinks,
 		icon: IconChartBar,
 		iconColor: "green",
+		description: "on this page",
 	},
 	{
 		key: "clicks",
@@ -50,13 +53,14 @@ export const getStatsCards = (data: StatsData): StatsCardConfig[] => [
 		value: data.totalClicks.toLocaleString(),
 		icon: IconClick,
 		iconColor: "violet",
+		description: "on this page",
 	},
 	{
 		key: "page",
-		title: "This Page",
+		title: "Showing",
 		value: data.pageCount,
 		icon: IconLink,
 		iconColor: "gray",
-		description: `of ${data.totalLinks} total`,
+		description: `of ${data.totalLinks} links`,
 	},
 ];

@@ -129,7 +129,8 @@ export interface LinkAnalyticsSummary {
  */
 export interface TopLinkData {
 	id: string;
-	shortCode: string;
+	shortCode?: string | null;
+	customAlias?: string | null;
 	title?: string;
 	clicks: number;
 	uniqueClicks: number;

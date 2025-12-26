@@ -49,7 +49,7 @@ export function LinkQrCard({
 			const url = window.URL.createObjectURL(blob);
 			const a = document.createElement("a");
 			a.href = url;
-			a.download = `${link.shortCode}-qr.png`;
+			a.download = `${link.customAlias ?? link.shortCode}-qr.png`;
 			document.body.appendChild(a);
 			a.click();
 			window.URL.revokeObjectURL(url);
@@ -82,7 +82,7 @@ export function LinkQrCard({
 								<Button
 									component="a"
 									href={getQrSrc(link.qrCodeUrl)}
-									download={`${link.shortCode}-qr.png`}
+									download={`${link.customAlias ?? link.shortCode}-qr.png`}
 									target="_blank"
 									variant="light"
 									fullWidth

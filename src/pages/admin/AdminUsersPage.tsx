@@ -44,8 +44,8 @@ import { UserDetailDrawer } from "./components/UserDetailDrawer";
 
 const USER_TYPE_OPTIONS = [
 	{ value: "", label: "All Types" },
-	{ value: "USER", label: "User" },
-	{ value: "ADMIN", label: "Admin" },
+	{ value: "FREE", label: "Free" },
+	{ value: "PRO", label: "Pro" },
 ];
 
 const EMAIL_VERIFIED_OPTIONS = [

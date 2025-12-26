@@ -50,7 +50,7 @@ export function LinkDetailHeader({
 }: Readonly<LinkDetailHeaderProps>) {
 	const shortUrl =
 		link.shortUrl ||
-		`${typeof window !== "undefined" ? window.location.origin : ""}/r/${link.shortCode}`;
+		`${typeof window !== "undefined" ? window.location.origin : ""}/r/${link.customAlias ?? link.shortCode}`;
 	const isArchived = link.isArchived || link.status === "ARCHIVED";
 
 	return (

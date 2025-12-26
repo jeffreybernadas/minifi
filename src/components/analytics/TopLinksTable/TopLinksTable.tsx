@@ -51,10 +51,10 @@ export function TopLinksTable({
 								<Table.Td>
 									<Stack gap={2}>
 										<Text size="sm" fw={500} lineClamp={1}>
-											{link.title || link.shortCode}
+											{link.title || link.customAlias || link.shortCode}
 										</Text>
 										<Text size="xs" c="dimmed" ff="monospace">
-											/{link.shortCode}
+											/{link.customAlias || link.shortCode}
 										</Text>
 									</Stack>
 								</Table.Td>

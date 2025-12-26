@@ -63,7 +63,7 @@ export const getLinkColumns = ({
 						fw={500}
 						size="sm"
 					>
-						{link.title || link.shortCode}
+						{link.title || link.customAlias || link.shortCode}
 					</Anchor>
 					{link.hasPassword && (
 						<Tooltip label="Password protected">
