@@ -29,6 +29,7 @@
 		"d3-scale": "^4.0.2",
 		"d3-scale-chromatic": "^3.1.0",
 		"dayjs": "^1.11.19",
+		"emoji-picker-react": "^4.16.1",
 		"keycloak-js": "^26.2.1",
 		"react": "^19.2.1",
 		"react-dom": "^19.2.1",

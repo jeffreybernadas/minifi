@@ -2,13 +2,16 @@ import {
 	ActionIcon,
 	Group,
 	Paper,
+	Popover,
 	Stack,
 	Text,
 	Textarea,
 	Tooltip,
+	useMantineColorScheme,
 } from "@mantine/core";
 import { useDebouncedCallback } from "@mantine/hooks";
-import { IconSend, IconX } from "@tabler/icons-react";
+import { IconMoodSmile, IconSend, IconX } from "@tabler/icons-react";
+import EmojiPicker, { type EmojiClickData, Theme } from "emoji-picker-react";
 import { type KeyboardEvent, useEffect, useRef, useState } from "react";
 import { emitStoppedTyping, emitTyping } from "@/lib/socket";
 import type { Message } from "@/types";
@@ -32,7 +35,10 @@ export function MessageInput({
 	chatId,
 	userId,
 }: Readonly<MessageInputProps>) {
+	const { colorScheme } = useMantineColorScheme();
 	const [value, setValue] = useState("");
+	const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
+	const textareaRef = useRef<HTMLTextAreaElement>(null);
 	const isTypingRef = useRef(false);
 	const stopTypingTimeoutRef = useRef<
 		ReturnType<typeof setTimeout> | undefined
@@ -109,6 +115,27 @@ export function MessageInput({
 		}
 	};
 
+	const handleEmojiClick = (emojiData: EmojiClickData) => {
+		// Insert emoji at cursor position
+		const textarea = textareaRef.current;
+		if (textarea) {
+			const start = textarea.selectionStart;
+			const end = textarea.selectionEnd;
+			const newValue =
+				value.substring(0, start) + emojiData.emoji + value.substring(end);
+			setValue(newValue);
+			// Set cursor position after emoji
+			setTimeout(() => {
+				textarea.selectionStart = textarea.selectionEnd =
+					start + emojiData.emoji.length;
+				textarea.focus();
+			}, 0);
+		} else {
+			setValue(value + emojiData.emoji);
+		}
+		setEmojiPickerOpen(false);
+	};
+
 	return (
 		<Paper
 			p="xs"
@@ -155,6 +182,7 @@ export function MessageInput({
 				{/* Input area */}
 				<Group align="center" gap="xs">
 					<Textarea
+						ref={textareaRef}
 						placeholder={disabled ? "Connecting..." : "Type a message..."}
 						value={value}
 						onChange={(e) => handleChange(e.currentTarget.value)}
@@ -177,6 +205,39 @@ export function MessageInput({
 							},
 						}}
 					/>
+					<Popover
+						opened={emojiPickerOpen}
+						onChange={setEmojiPickerOpen}
+						position="top-end"
+						shadow="md"
+						withinPortal
+						zIndex={1001}
+					>
+						<Popover.Target>
+							<Tooltip label="Add emoji" position="top" zIndex={1001}>
+								<ActionIcon
+									variant="subtle"
+									color="gray"
+									size="lg"
+									radius="xl"
+									onClick={() => setEmojiPickerOpen((o) => !o)}
+									disabled={disabled}
+								>
+									<IconMoodSmile size={20} />
+								</ActionIcon>
+							</Tooltip>
+						</Popover.Target>
+						<Popover.Dropdown p={0} style={{ border: "none" }}>
+							<EmojiPicker
+								onEmojiClick={handleEmojiClick}
+								theme={colorScheme === "dark" ? Theme.DARK : Theme.LIGHT}
+								width={300}
+								height={400}
+								searchPlaceholder="Search emoji..."
+								previewConfig={{ showPreview: false }}
+							/>
+						</Popover.Dropdown>
+					</Popover>
 					<Tooltip label="Send message (Enter)" position="top" zIndex={1001}>
 						<ActionIcon
 							variant="filled"
