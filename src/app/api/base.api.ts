@@ -5,9 +5,80 @@ import {
 	type FetchBaseQueryError,
 	fetchBaseQuery,
 } from "@reduxjs/toolkit/query/react";
+import { modals } from "@mantine/modals";
+import { createElement } from "react";
 import { VITE_API_BASE_URL } from "@/constants/env.constant";
+import { BlockedUserModalContent } from "@/components/common/BlockedUserModal";
 import { clearAuth } from "@/features/auth/auth.slice";
 import { keycloak } from "@/features/auth/keycloak";
+
+/**
+ * Error code returned by backend when user is blocked
+ */
+const BLOCKED_USER_ERROR_CODE = "USER_BLOCKED";
+
+/**
+ * Backend error response structure
+ */
+interface BackendErrorResponse {
+	success: boolean;
+	statusCode: number;
+	error?: {
+		code: string;
+		message: string;
+	};
+}
+
+/**
+ * Check if error response indicates a blocked user
+ * Backend returns: { success, statusCode, error: { code, message } }
+ */
+const isBlockedUserError = (error: FetchBaseQueryError): boolean => {
+	if (error.status === 403 && error.data) {
+		const data = error.data as BackendErrorResponse;
+		return data.error?.code === BLOCKED_USER_ERROR_CODE;
+	}
+	return false;
+};
+
+/**
+ * Get blocked reason from error response
+ */
+const getBlockedReason = (error: FetchBaseQueryError): string => {
+	if (error.data) {
+		const data = error.data as BackendErrorResponse;
+		return data.error?.message || "Your account has been suspended.";
+	}
+	return "Your account has been suspended.";
+};
+
+/**
+ * Track if blocked modal is already shown to prevent duplicate modals
+ */
+let isBlockedModalShown = false;
+
+/**
+ * Show blocked user modal using Mantine's imperative modals API
+ * Modal cannot be closed - only option is to log out
+ */
+const showBlockedUserModal = (reason: string): void => {
+	// Prevent showing multiple modals
+	if (isBlockedModalShown) return;
+	isBlockedModalShown = true;
+
+	modals.open({
+		modalId: "blocked-user",
+		title: "Account Suspended",
+		centered: true,
+		closeOnClickOutside: false,
+		closeOnEscape: false,
+		withCloseButton: false,
+		children: createElement(BlockedUserModalContent, {
+			reason,
+			onLogout: () => modals.close("blocked-user"),
+		}),
+	});
+};
 
 /**
  * Response handler to extract 'data' field from backend wrapper
@@ -53,6 +124,7 @@ export const publicBaseQuery = fetchBaseQuery({
 /**
  * Base query with re-authentication on 401/403
  * - Single retry attempt after token refresh
+ * - Shows blocked user modal if user is blocked
  * - Logs out and redirects if refresh fails or retry fails
  */
 const baseQueryWithReauth: BaseQueryFn<
@@ -61,6 +133,13 @@ const baseQueryWithReauth: BaseQueryFn<
 	FetchBaseQueryError
 > = async (args, api, extraOptions) => {
 	let result = await baseQuery(args, api, extraOptions);
+
+	// Check for blocked user error first - show modal instead of logout
+	if (result.error && isBlockedUserError(result.error)) {
+		const reason = getBlockedReason(result.error);
+		showBlockedUserModal(reason);
+		return result;
+	}
 
 	if (
 		result.error &&
@@ -72,6 +151,13 @@ const baseQueryWithReauth: BaseQueryFn<
 			if (refreshed) {
 				// Retry the original request with new token
 				result = await baseQuery(args, api, extraOptions);
+
+				// Check if retry returned blocked user error
+				if (result.error && isBlockedUserError(result.error)) {
+					const reason = getBlockedReason(result.error);
+					showBlockedUserModal(reason);
+					return result;
+				}
 
 				// If retry still fails with 401/403, logout
 				if (
