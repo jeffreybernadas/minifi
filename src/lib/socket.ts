@@ -1,5 +1,6 @@
 import { io, type Socket } from "socket.io-client";
 import { VITE_WS_URL } from "@/constants/env.constant";
+import { WEBSOCKET_EVENTS } from "@/constants/websocket.constant";
 import { keycloak } from "@/features/auth/keycloak";
 
 let socket: Socket | null = null;
@@ -84,7 +85,7 @@ export const isSocketConnected = (): boolean => {
 export const joinRoom = (room: string): void => {
 	const s = getSocket();
 	if (s.connected) {
-		s.emit("join-room", { room });
+		s.emit(WEBSOCKET_EVENTS.JOIN_ROOM, { room });
 	}
 };
 
@@ -94,7 +95,7 @@ export const joinRoom = (room: string): void => {
 export const leaveRoom = (room: string): void => {
 	const s = getSocket();
 	if (s.connected) {
-		s.emit("leave-room", { room });
+		s.emit(WEBSOCKET_EVENTS.LEAVE_ROOM, { room });
 	}
 };
 
@@ -106,7 +107,7 @@ export const leaveRoom = (room: string): void => {
 export const emitTyping = (chatId: string, userId: string): void => {
 	const s = getSocket();
 	if (s.connected) {
-		s.emit("chat:user-typing", { chatId, userId });
+		s.emit(WEBSOCKET_EVENTS.USER_TYPING, { chatId, userId });
 	}
 };
 
@@ -116,7 +117,7 @@ export const emitTyping = (chatId: string, userId: string): void => {
 export const emitStoppedTyping = (chatId: string, userId: string): void => {
 	const s = getSocket();
 	if (s.connected) {
-		s.emit("chat:user-stopped-typing", { chatId, userId });
+		s.emit(WEBSOCKET_EVENTS.USER_STOPPED_TYPING, { chatId, userId });
 	}
 };
 
@@ -132,7 +133,7 @@ export const emitMessageRead = (
 ): void => {
 	const s = getSocket();
 	if (s.connected) {
-		s.emit("chat:message-read", { chatId, messageId, userId });
+		s.emit(WEBSOCKET_EVENTS.MESSAGE_READ, { chatId, messageId, userId });
 	}
 };
 
@@ -146,6 +147,6 @@ export const emitMessagesRead = (
 ): void => {
 	const s = getSocket();
 	if (s.connected && messageIds.length > 0) {
-		s.emit("chat:messages-read", { chatId, messageIds, userId });
+		s.emit(WEBSOCKET_EVENTS.MESSAGES_READ, { chatId, messageIds, userId });
 	}
 };

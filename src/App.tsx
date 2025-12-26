@@ -17,7 +17,7 @@ import {
 	setAuthenticated,
 	setInitialized,
 } from "@/features/auth";
-import { connectSocket, disconnectSocket, joinRoom } from "@/lib/socket";
+import { connectSocket, disconnectSocket } from "@/lib/socket";
 import { NavigationProgress, router } from "@/router";
 import { theme } from "@/styles/theme";
 
@@ -36,11 +36,8 @@ function App() {
 					if (userInfo) {
 						dispatch(setAuthenticated(userInfo));
 
-						// Connect socket and join user's personal room
-						// Must await connection before joining room
-						connectSocket().then(() => {
-							joinRoom(`user:${userInfo.id}`);
-						});
+						// Connect socket - backend auto-joins user:${userId} room on connection
+						connectSocket();
 					}
 				}
 

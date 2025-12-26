@@ -3,6 +3,10 @@
  * Must match the backend WEBSOCKET_EVENTS constants
  */
 export const WEBSOCKET_EVENTS = {
+	// Room events
+	JOIN_ROOM: "join-room",
+	LEAVE_ROOM: "leave-room",
+
 	// Chat typing indicators
 	USER_TYPING: "chat:user-typing",
 	USER_STOPPED_TYPING: "chat:user-stopped-typing",
@@ -29,4 +33,16 @@ export const WEBSOCKET_EVENTS = {
 	PRESENCE_USER_OFFLINE: "presence:user-offline",
 	PRESENCE_ADMIN_ONLINE: "presence:admin-online",
 	PRESENCE_ADMIN_OFFLINE: "presence:admin-offline",
+} as const;
+
+/**
+ * Room name prefixes for socket rooms
+ */
+export const SOCKET_ROOMS = {
+	/** User's personal notification room: `user:${userId}` */
+	USER: (userId: string) => `user:${userId}`,
+	/** Chat room: `chat:${chatId}` */
+	CHAT: (chatId: string) => `chat:${chatId}`,
+	/** Admin room for presence broadcasts */
+	ADMINS: "room:admins",
 } as const;

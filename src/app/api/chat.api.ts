@@ -1,4 +1,4 @@
-import { WEBSOCKET_EVENTS } from "@/constants/websocket.constant";
+import { SOCKET_ROOMS, WEBSOCKET_EVENTS } from "@/constants/websocket.constant";
 import { getSocket, joinRoom, leaveRoom } from "@/lib/socket";
 import type { Chat, Message, SendMessageDto } from "@/types";
 import type { RootState } from "../store";
@@ -229,7 +229,7 @@ export const chatApi = baseApi.injectEndpoints({
 
 				try {
 					await cacheDataLoaded;
-					joinRoom(`chat:${chatId}`);
+					joinRoom(SOCKET_ROOMS.CHAT(chatId));
 
 					// New message - append to end (newest)
 					const onNewMessage = (payload: { data: Message }) => {
@@ -259,7 +259,7 @@ export const chatApi = baseApi.injectEndpoints({
 							}
 						});
 
-						// Also update sidebar: lastMessage and reset unread (user is viewing this chat)
+						// Also update sidebar: lastMessage (unread count handled by onUnreadIncrement/onMessagesRead)
 						dispatch(
 							chatApi.util.updateQueryData(
 								"getUserChats",
@@ -274,8 +274,6 @@ export const chatApi = baseApi.injectEndpoints({
 											isDeleted: payload.data.isDeleted,
 											createdAt: payload.data.createdAt,
 										};
-										// User is viewing this chat, so reset unread
-										chat.unreadCount = 0;
 										chat.updatedAt = payload.data.createdAt;
 									}
 								},
@@ -361,7 +359,7 @@ export const chatApi = baseApi.injectEndpoints({
 
 					await cacheEntryRemoved;
 
-					leaveRoom(`chat:${chatId}`);
+					leaveRoom(SOCKET_ROOMS.CHAT(chatId));
 					socket.off(WEBSOCKET_EVENTS.NEW_MESSAGE, onNewMessage);
 					socket.off(WEBSOCKET_EVENTS.MESSAGE_UPDATED, onMessageUpdated);
 					socket.off(WEBSOCKET_EVENTS.MESSAGE_DELETED, onMessageDeleted);
