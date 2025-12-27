@@ -1,4 +1,5 @@
 import { modals } from "@mantine/modals";
+import { notifications } from "@mantine/notifications";
 import {
 	type BaseQueryFn,
 	createApi,
@@ -6,6 +7,7 @@ import {
 	type FetchBaseQueryError,
 	fetchBaseQuery,
 } from "@reduxjs/toolkit/query/react";
+import { IconWifiOff } from "@tabler/icons-react";
 import { createElement } from "react";
 import { BlockedUserModalContent } from "@/components/common/BlockedUserModal";
 import { VITE_API_BASE_URL } from "@/constants/env.constant";
@@ -133,6 +135,19 @@ const baseQueryWithReauth: BaseQueryFn<
 	FetchBaseQueryError
 > = async (args, api, extraOptions) => {
 	let result = await baseQuery(args, api, extraOptions);
+
+	// Handle network errors (offline, connection refused, etc.)
+	if (result.error && result.error.status === "FETCH_ERROR") {
+		notifications.show({
+			id: "network-error",
+			title: "Network Error",
+			message: "Please check your internet connection and try again.",
+			color: "red",
+			icon: createElement(IconWifiOff, { size: 16 }),
+			autoClose: 5000,
+		});
+		return result;
+	}
 
 	// Check for blocked user error first - show modal instead of logout
 	if (result.error && isBlockedUserError(result.error)) {

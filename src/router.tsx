@@ -2,6 +2,7 @@ import { NavigationProgress, nprogress } from "@mantine/nprogress";
 import { Suspense } from "react";
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import { useAppSelector } from "@/app/hooks";
+import { RouteErrorBoundary } from "@/components/common";
 import { AppShell } from "@/components/layout";
 import { useAuth } from "./hooks";
 
@@ -91,6 +92,7 @@ export const router = createBrowserRouter([
 	// Public routes (no sidebar)
 	{
 		element: <AppShell withSidebar={false} />,
+		errorElement: <RouteErrorBoundary />,
 		children: [
 			{
 				path: "/",
@@ -110,6 +112,7 @@ export const router = createBrowserRouter([
 				<AppShell withSidebar={true} />
 			</AuthGuard>
 		),
+		errorElement: <RouteErrorBoundary />,
 		children: [
 			{
 				path: "/dashboard",
@@ -169,6 +172,7 @@ export const router = createBrowserRouter([
 				<AppShell withSidebar={true} />
 			</AdminGuard>
 		),
+		errorElement: <RouteErrorBoundary />,
 		children: [
 			{
 				path: "/admin",

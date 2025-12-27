@@ -9,6 +9,7 @@ import { ModalsProvider } from "@mantine/modals";
 import { Notifications } from "@mantine/notifications";
 import { RouterProvider } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "@/app/hooks";
+import { ErrorBoundary } from "@/components/common";
 import {
 	clearAuth,
 	getUserFromToken,
@@ -84,13 +85,15 @@ function App() {
 	}
 
 	return (
-		<MantineProvider theme={theme} forceColorScheme={resolvedScheme}>
-			<ModalsProvider>
-				<Notifications position="top-right" zIndex={1000} />
-				<NavigationProgress />
-				<RouterProvider router={router} />
-			</ModalsProvider>
-		</MantineProvider>
+		<ErrorBoundary>
+			<MantineProvider theme={theme} forceColorScheme={resolvedScheme}>
+				<ModalsProvider>
+					<Notifications position="top-right" zIndex={1000} />
+					<NavigationProgress />
+					<RouterProvider router={router} />
+				</ModalsProvider>
+			</MantineProvider>
+		</ErrorBoundary>
 	);
 }
 

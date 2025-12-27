@@ -4,6 +4,7 @@ import { Outlet } from "react-router-dom";
 import { useGetUserProfileQuery } from "@/app/api/user.api";
 import { useAppSelector } from "@/app/hooks";
 import { ChatWidget } from "@/components/chat";
+import { OfflineBanner } from "@/components/common";
 import { Footer } from "../Footer";
 import { Header } from "../Header";
 import { Sidebar } from "../Sidebar";
@@ -29,53 +30,56 @@ export function AppShell({ withSidebar = false }: AppShellProps) {
 	});
 
 	return (
-		<MantineAppShell
-			header={{ height: 60 }}
-			navbar={
-				withSidebar
-					? {
-							width: 250,
-							breakpoint: "sm",
-							collapsed: { mobile: !mobileOpened, desktop: !desktopOpened },
-						}
-					: undefined
-			}
-			layout="alt"
-			padding={withSidebar ? "md" : 0}
-		>
-			<MantineAppShell.Header>
-				<Header
-					mobileOpened={mobileOpened}
-					desktopOpened={desktopOpened}
-					toggleMobile={toggleMobile}
-					toggleDesktop={toggleDesktop}
-					withSidebar={withSidebar}
-				/>
-			</MantineAppShell.Header>
+		<>
+			<OfflineBanner />
+			<MantineAppShell
+				header={{ height: 60 }}
+				navbar={
+					withSidebar
+						? {
+								width: 250,
+								breakpoint: "sm",
+								collapsed: { mobile: !mobileOpened, desktop: !desktopOpened },
+							}
+						: undefined
+				}
+				layout="alt"
+				padding={withSidebar ? "md" : 0}
+			>
+				<MantineAppShell.Header>
+					<Header
+						mobileOpened={mobileOpened}
+						desktopOpened={desktopOpened}
+						toggleMobile={toggleMobile}
+						toggleDesktop={toggleDesktop}
+						withSidebar={withSidebar}
+					/>
+				</MantineAppShell.Header>
 
-			{withSidebar && (
-				<MantineAppShell.Navbar>
-					<Sidebar onCloseMobile={closeMobile} />
-				</MantineAppShell.Navbar>
-			)}
-
-			{/* ChatWidget renders for all pages - it handles its own visibility (PRO users only) */}
-			<ChatWidget />
-
-			<MantineAppShell.Main>
-				{!withSidebar ? (
-					<>
-						<Container size={1400} px="md" py="md" my={0}>
-							<Outlet />
-						</Container>
-						<Container size={1400} px="md">
-							<Footer />
-						</Container>
-					</>
-				) : (
-					<Outlet />
+				{withSidebar && (
+					<MantineAppShell.Navbar>
+						<Sidebar onCloseMobile={closeMobile} />
+					</MantineAppShell.Navbar>
 				)}
-			</MantineAppShell.Main>
-		</MantineAppShell>
+
+				{/* ChatWidget renders for all pages - it handles its own visibility (PRO users only) */}
+				<ChatWidget />
+
+				<MantineAppShell.Main>
+					{!withSidebar ? (
+						<>
+							<Container size={1400} px="md" py="md" my={0}>
+								<Outlet />
+							</Container>
+							<Container size={1400} px="md">
+								<Footer />
+							</Container>
+						</>
+					) : (
+						<Outlet />
+					)}
+				</MantineAppShell.Main>
+			</MantineAppShell>
+		</>
 	);
 }
