@@ -173,14 +173,6 @@ export const chatApi = baseApi.injectEndpoints({
 			},
 		}),
 
-		/**
-		 * Get specific chat details
-		 */
-		getChatById: builder.query<Chat, string>({
-			query: (chatId) => `/chat/${chatId}`,
-			providesTags: (_result, _error, id) => [{ type: "Chat", id }],
-		}),
-
 		// ============ MESSAGES (with Infinite Scroll) ============
 
 		/**
@@ -840,7 +832,6 @@ export const chatApi = baseApi.injectEndpoints({
 export const {
 	useCreateChatMutation,
 	useGetUserChatsQuery,
-	useGetChatByIdQuery,
 	useGetChatMessagesQuery,
 	useGetChatPresenceQuery,
 	useGetAdminPresenceQuery,
