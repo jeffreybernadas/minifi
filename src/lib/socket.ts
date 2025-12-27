@@ -135,20 +135,6 @@ export const emitStoppedTyping = (chatId: string, userId: string): void => {
 // ============ Read Receipts ============
 
 /**
- * Mark a single message as read.
- */
-export const emitMessageRead = (
-	chatId: string,
-	messageId: string,
-	userId: string,
-): void => {
-	const s = getSocket();
-	if (s.connected) {
-		s.emit(WEBSOCKET_EVENTS.MESSAGE_READ, { chatId, messageId, userId });
-	}
-};
-
-/**
  * Mark multiple messages as read (batch).
  */
 export const emitMessagesRead = (
