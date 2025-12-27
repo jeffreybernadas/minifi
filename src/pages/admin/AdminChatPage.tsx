@@ -76,12 +76,17 @@ export default function AdminChatPage() {
 		skip: !activeChatId,
 	});
 
-	// Extract user IDs from all chats for global presence query
+	// Extract user IDs from all chats for global presence query (exclude admin)
 	const userIds = useMemo(() => {
 		return chats
-			.map((c) => c.members?.[0]?.userId)
+			.flatMap(
+				(c) =>
+					c.members
+						?.filter((m) => m.userId !== user?.id)
+						.map((m) => m.userId) ?? [],
+			)
 			.filter((id): id is string => Boolean(id));
-	}, [chats]);
+	}, [chats, user?.id]);
 
 	// Get global user presence (user-level online status)
 	const { data: usersPresence } = useGetUsersPresenceQuery(userIds, {
@@ -283,7 +288,7 @@ export default function AdminChatPage() {
 	}, []);
 
 	const getOtherMember = (chat: Chat) => {
-		return chat.members?.[0] ?? null;
+		return chat.members?.find((m) => m.userId !== user?.id) ?? null;
 	};
 
 	if (!isAdmin) {
