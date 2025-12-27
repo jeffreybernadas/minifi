@@ -186,6 +186,7 @@ export function MessageBubble({
 						radius="xl"
 						size="sm"
 						color="gray"
+						imageProps={{ loading: "lazy" }}
 					>
 						{(senderName || "S").charAt(0).toUpperCase()}
 					</Avatar>
@@ -236,6 +237,7 @@ export function MessageBubble({
 						radius="xl"
 						size="sm"
 						color="blue"
+						imageProps={{ loading: "lazy" }}
 					>
 						{(senderName || "S").charAt(0).toUpperCase()}
 					</Avatar>

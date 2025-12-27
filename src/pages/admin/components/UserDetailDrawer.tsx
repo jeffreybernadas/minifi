@@ -209,16 +209,15 @@ export function UserDetailDrawer({
 				<Stack gap="lg">
 					{/* Header Section */}
 					<Stack align="center" gap="sm">
-						<Avatar size={80} radius={80} color="blue">
-							{user.avatarUrl ? (
-								<img
-									src={user.avatarUrl}
-									alt={getDisplayName(user)}
-									style={{ width: "100%", height: "100%", objectFit: "cover" }}
-								/>
-							) : (
-								getUserInitials(user)
-							)}
+						<Avatar
+							size={80}
+							radius={80}
+							color="blue"
+							src={user.avatarUrl}
+							alt={getDisplayName(user)}
+							imageProps={{ loading: "lazy" }}
+						>
+							{getUserInitials(user)}
 						</Avatar>
 						<Stack gap={4} align="center">
 							<Title order={4}>{getDisplayName(user)}</Title>

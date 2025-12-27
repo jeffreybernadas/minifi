@@ -425,6 +425,7 @@ export default function AdminChatPage() {
 												radius="xl"
 												size="md"
 												color="blue"
+												imageProps={{ loading: "lazy" }}
 											>
 												{otherMember?.displayName?.charAt(0).toUpperCase() ||
 													"?"}
@@ -511,6 +512,7 @@ export default function AdminChatPage() {
 										color="white"
 										style={{ cursor: "pointer" }}
 										onClick={() => handleViewDetails(activeMember!)}
+										imageProps={{ loading: "lazy" }}
 									>
 										{activeMember?.displayName?.charAt(0).toUpperCase() || "?"}
 									</Avatar>
