@@ -34,6 +34,13 @@ export const getSocket = (): Socket => {
 		socket.on("connect_error", (error) => {
 			console.error("[Socket] Connection error:", error.message);
 		});
+
+		// Refresh token on reconnection attempts to avoid stale token issues
+		socket.io.on("reconnect_attempt", () => {
+			if (socket) {
+				socket.auth = { token: keycloak.token };
+			}
+		});
 	}
 	return socket;
 };
@@ -60,12 +67,13 @@ export const connectSocket = (): Promise<void> => {
 };
 
 /**
- * Disconnect the socket.
+ * Disconnect the socket and clear the reference.
  * Call this on logout.
  */
 export const disconnectSocket = (): void => {
-	if (socket?.connected) {
+	if (socket) {
 		socket.disconnect();
+		socket = null;
 	}
 };
 
