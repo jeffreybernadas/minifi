@@ -3,6 +3,7 @@ import { useDisclosure } from "@mantine/hooks";
 import { Outlet } from "react-router-dom";
 import { useGetUserProfileQuery } from "@/app/api/user.api";
 import { useAppSelector } from "@/app/hooks";
+import { AdvisoryModal } from "@/components/advisory";
 import { ChatWidget } from "@/components/chat";
 import { OfflineBanner } from "@/components/common";
 import { Footer } from "../Footer";
@@ -64,6 +65,9 @@ export function AppShell({ withSidebar = false }: AppShellProps) {
 
 				{/* ChatWidget renders for all pages - it handles its own visibility (PRO users only) */}
 				<ChatWidget />
+
+				{/* AdvisoryModal shows active advisories to authenticated users */}
+				<AdvisoryModal />
 
 				<MantineAppShell.Main>
 					{!withSidebar ? (

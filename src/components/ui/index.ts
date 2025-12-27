@@ -12,6 +12,8 @@ export { Logo } from "./Logo";
 export { NavbarLinksGroup as LinksGroup } from "./NavbarLinksGroup";
 export type { PricingCardsProps, SubscriptionTier } from "./PricingCards";
 export { PRICING, PricingCards } from "./PricingCards";
+export type { RichTextEditorProps } from "./RichTextEditor";
+export { RichTextEditor } from "./RichTextEditor";
 export type { StatsCardProps } from "./StatsCard";
 export { StatsCard } from "./StatsCard";
 export type { LinkStatusBadgeProps, ScanStatusBadgeProps } from "./StatusBadge";

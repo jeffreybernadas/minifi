@@ -34,6 +34,7 @@ const adminNavigation = [
 			{ label: "Users", link: "/admin/users" },
 			{ label: "Links", link: "/admin/links" },
 			{ label: "Chat", link: "/admin/chat" },
+			{ label: "Advisories", link: "/admin/advisories" },
 		],
 	},
 ];
