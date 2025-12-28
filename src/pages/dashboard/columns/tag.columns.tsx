@@ -2,14 +2,7 @@ import { ActionIcon, Group, Menu, Text } from "@mantine/core";
 import { IconDotsVertical, IconPencil, IconTrash } from "@tabler/icons-react";
 import { type Column, TagBadge } from "@/components/ui";
 import type { Tag } from "@/types";
-
-const formatDate = (date: string) => {
-	return new Date(date).toLocaleDateString("en-US", {
-		month: "short",
-		day: "numeric",
-		year: "numeric",
-	});
-};
+import { formatDate } from "@/utils/date.util";
 
 export interface TagColumnsOptions {
 	onEdit: (tag: Tag) => void;

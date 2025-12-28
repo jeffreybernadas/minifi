@@ -17,9 +17,9 @@ import {
 	useGetActiveAdvisoriesQuery,
 } from "@/app/api/advisory.api";
 import { useAppSelector } from "@/app/hooks";
+import { ADVISORY_TYPE_CONFIG } from "@/constants/advisory.constant";
 import type { Advisory } from "@/types";
 import { formatDate } from "@/utils/date.util";
-import { TYPE_CONFIG } from "../constants";
 
 interface AdvisoryModalUIProps {
 	advisory: Advisory;
@@ -39,7 +39,7 @@ function AdvisoryModalUI({
 	actionLoading = false,
 	counter,
 }: AdvisoryModalUIProps) {
-	const config = TYPE_CONFIG[advisory.type];
+	const config = ADVISORY_TYPE_CONFIG[advisory.type];
 	const Icon = config.icon;
 
 	return (

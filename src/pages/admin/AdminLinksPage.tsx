@@ -26,15 +26,15 @@ import {
 } from "@/app/api/admin.api";
 import { EditLinkModal } from "@/components/links";
 import { DataTable, StatsCard } from "@/components/ui";
-import type { AdminLink, LinkStatus, ScanStatus } from "@/types";
-import { getErrorMessage } from "@/types";
-import { getAdminLinkColumns } from "./columns";
 import {
 	ADMIN_LINK_STATUS_OPTIONS,
 	GUEST_OPTIONS,
-	getAdminLinkStatsCards,
 	SCAN_STATUS_OPTIONS,
-} from "./constants/links.constants";
+} from "@/constants/filter-options.constant";
+import { getAdminLinkStatsCards } from "@/constants/stats.constant";
+import type { AdminLink, LinkStatus, ScanStatus } from "@/types";
+import { getErrorMessage } from "@/types";
+import { getAdminLinkColumns } from "./columns";
 
 export default function AdminLinksPage() {
 	const navigate = useNavigate();

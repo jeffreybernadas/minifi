@@ -28,8 +28,9 @@ import {
 	TopCountriesTable,
 } from "@/components/analytics";
 import { AnalyticsPieChart, DataTable, StatsCard } from "@/components/ui";
+import { getScanStatusColor } from "@/constants/status.constant";
 import type { DailyStat, SecurityStat } from "@/types";
-import { alertColumns, getScanStatusColor } from "./columns";
+import { alertColumns } from "./columns";
 
 /**
  * Merge daily trend data into a single dataset for MultiSeriesLineChart

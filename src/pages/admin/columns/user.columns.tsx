@@ -20,40 +20,8 @@ import {
 } from "@tabler/icons-react";
 import type { Column } from "@/components/ui";
 import type { AdminUser } from "@/types";
-
-/**
- * Format date for display
- */
-const formatDate = (date: string) => {
-	return new Date(date).toLocaleDateString("en-US", {
-		month: "short",
-		day: "numeric",
-		year: "numeric",
-	});
-};
-
-/**
- * Get user initials from name or email
- */
-const getUserInitials = (user: AdminUser): string => {
-	if (user.firstName && user.lastName) {
-		return `${user.firstName.charAt(0)}${user.lastName.charAt(0)}`.toUpperCase();
-	}
-	if (user.firstName) {
-		return user.firstName.charAt(0).toUpperCase();
-	}
-	return user.email.charAt(0).toUpperCase();
-};
-
-/**
- * Get display name for user
- */
-const getDisplayName = (user: AdminUser): string => {
-	if (user.firstName || user.lastName) {
-		return `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim();
-	}
-	return user.email;
-};
+import { formatDate } from "@/utils/date.util";
+import { getDisplayName, getUserInitials } from "@/utils/user.util";
 
 export interface UserColumnsOptions {
 	onViewDetails: (user: AdminUser) => void;

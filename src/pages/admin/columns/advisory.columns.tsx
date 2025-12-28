@@ -8,9 +8,12 @@ import {
 	IconTrash,
 } from "@tabler/icons-react";
 import type { Column } from "@/components/ui";
+import {
+	ADVISORY_STATUS_COLORS,
+	ADVISORY_TYPE_COLORS,
+} from "@/constants/advisory.constant";
 import type { Advisory, AdvisoryListItem } from "@/types";
 import { formatDate } from "@/utils/date.util";
-import { STATUS_COLORS, TYPE_COLORS } from "../constants/advisory.constants";
 
 export interface AdvisoryColumnsOptions {
 	onPreview: (advisory: Advisory) => void;
@@ -50,7 +53,7 @@ export const getAdvisoryColumns = ({
 		header: "Type",
 		width: 120,
 		render: (advisory) => (
-			<Badge color={TYPE_COLORS[advisory.type]} variant="light">
+			<Badge color={ADVISORY_TYPE_COLORS[advisory.type]} variant="light">
 				{advisory.type}
 			</Badge>
 		),
@@ -60,7 +63,7 @@ export const getAdvisoryColumns = ({
 		header: "Status",
 		width: 120,
 		render: (advisory) => (
-			<Badge color={STATUS_COLORS[advisory.status]} variant="light">
+			<Badge color={ADVISORY_STATUS_COLORS[advisory.status]} variant="light">
 				{advisory.status}
 			</Badge>
 		),

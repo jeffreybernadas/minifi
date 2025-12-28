@@ -29,10 +29,11 @@ import {
 } from "@/app/api/links.api";
 import { CreateLinkModal, EditLinkModal } from "@/components/links";
 import { DataTable, StatsCard } from "@/components/ui";
+import { LINK_STATUS_OPTIONS } from "@/constants/filter-options.constant";
+import { getDashboardStatsCards } from "@/constants/stats.constant";
 import { getLinkColumns } from "@/pages/dashboard/columns";
 import type { LinkStatus, Link as LinkType } from "@/types";
 import { getErrorMessage } from "@/types";
-import { getStatsCards, STATUS_OPTIONS } from "./constants";
 
 export default function DashboardPage() {
 	const navigate = useNavigate();
@@ -197,7 +198,7 @@ export default function DashboardPage() {
 	// Stats cards configuration
 	const statsCards = useMemo(
 		() =>
-			getStatsCards({
+			getDashboardStatsCards({
 				totalLinks,
 				activeLinks,
 				totalClicks,
@@ -246,7 +247,7 @@ export default function DashboardPage() {
 					/>
 					<Select
 						placeholder="Status"
-						data={STATUS_OPTIONS}
+						data={LINK_STATUS_OPTIONS}
 						value={status}
 						onChange={(val) => {
 							setStatus(val ?? "");

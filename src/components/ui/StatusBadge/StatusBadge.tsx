@@ -1,34 +1,9 @@
-import { Badge, type MantineColor, type MantineSize } from "@mantine/core";
+import { Badge, type MantineSize } from "@mantine/core";
+import {
+	LINK_STATUS_CONFIG,
+	SCAN_STATUS_CONFIG,
+} from "@/constants/status.constant";
 import type { LinkStatus, ScanStatus } from "@/types";
-
-/**
- * Link status badge configuration
- */
-const LINK_STATUS_CONFIG: Record<
-	LinkStatus,
-	{ color: MantineColor; label: string }
-> = {
-	ACTIVE: { color: "green", label: "Active" },
-	SCHEDULED: { color: "blue", label: "Scheduled" },
-	DISABLED: { color: "gray", label: "Disabled" },
-	ARCHIVED: { color: "dark", label: "Archived" },
-	SUSPICIOUS: { color: "yellow", label: "Suspicious" },
-	BLOCKED: { color: "red", label: "Blocked" },
-};
-
-/**
- * Scan status badge configuration
- */
-const SCAN_STATUS_CONFIG: Record<
-	ScanStatus,
-	{ color: MantineColor; label: string }
-> = {
-	PENDING: { color: "blue", label: "Pending" },
-	SAFE: { color: "green", label: "Safe" },
-	SUSPICIOUS: { color: "yellow", label: "Suspicious" },
-	MALICIOUS: { color: "red", label: "Malicious" },
-	ADULT_CONTENT: { color: "orange", label: "Adult" },
-};
 
 export interface LinkStatusBadgeProps {
 	status: LinkStatus;

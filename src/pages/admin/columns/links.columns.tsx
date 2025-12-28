@@ -22,26 +22,9 @@ import {
 import { Link } from "react-router-dom";
 import type { Column } from "@/components/ui";
 import { CopyButton, LinkStatusBadge, ScanStatusBadge } from "@/components/ui";
-import { VITE_APP_URL } from "@/constants/env.constant";
 import type { AdminLink } from "@/types";
-
-/**
- * Format date for display
- */
-const formatDate = (date: string) => {
-	return new Date(date).toLocaleDateString("en-US", {
-		month: "short",
-		day: "numeric",
-		year: "numeric",
-	});
-};
-
-/**
- * Build the short URL from link data
- */
-const buildShortUrl = (link: AdminLink): string => {
-	return `${VITE_APP_URL}/r/${link.customAlias ?? link.shortCode}`;
-};
+import { formatDate } from "@/utils/date.util";
+import { buildShortUrl } from "@/utils/link.util";
 
 export interface AdminLinkColumnsOptions {
 	onViewDetails: (link: AdminLink) => void;

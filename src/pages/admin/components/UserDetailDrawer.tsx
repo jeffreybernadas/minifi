@@ -32,6 +32,8 @@ import { useGetAdminUserQuery } from "@/app/api/admin.api";
 import { CopyButton } from "@/components/ui";
 import type { AdminUserDetail } from "@/types";
 import { getErrorMessage } from "@/types";
+import { formatDate, formatDateTime } from "@/utils/date.util";
+import { getDisplayName, getUserInitials } from "@/utils/user.util";
 
 interface UserDetailDrawerProps {
 	userId: string | null;
@@ -42,55 +44,6 @@ interface UserDetailDrawerProps {
 	onDelete: (user: AdminUserDetail) => void;
 	disableActions?: boolean;
 }
-
-/**
- * Format date for display
- */
-const formatDate = (date: string) => {
-	return new Date(date).toLocaleDateString("en-US", {
-		month: "short",
-		day: "numeric",
-		year: "numeric",
-	});
-};
-
-/**
- * Format full date with time
- */
-const formatDateTime = (date: string) => {
-	return new Date(date).toLocaleString("en-US", {
-		month: "short",
-		day: "numeric",
-		year: "numeric",
-		hour: "numeric",
-		minute: "2-digit",
-	});
-};
-
-/**
- * Get user initials
- */
-const getUserInitials = (user: AdminUserDetail): string => {
-	if (user.firstName && user.lastName) {
-		return `${user.firstName.charAt(0)}${user.lastName.charAt(
-			0,
-		)}`.toUpperCase();
-	}
-	if (user.firstName) {
-		return user.firstName.charAt(0).toUpperCase();
-	}
-	return user.email.charAt(0).toUpperCase();
-};
-
-/**
- * Get display name
- */
-const getDisplayName = (user: AdminUserDetail): string => {
-	if (user.firstName || user.lastName) {
-		return `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim();
-	}
-	return user.email;
-};
 
 /**
  * Info row component

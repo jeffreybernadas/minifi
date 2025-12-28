@@ -26,14 +26,7 @@ import {
 	ScanStatusBadge,
 } from "@/components/ui";
 import type { Link as LinkType } from "@/types";
-
-const formatDate = (date: string) => {
-	return new Date(date).toLocaleDateString("en-US", {
-		month: "short",
-		day: "numeric",
-		year: "numeric",
-	});
-};
+import { formatDate } from "@/utils/date.util";
 
 export interface LinkColumnsOptions {
 	onNavigate: (path: string) => void;

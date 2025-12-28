@@ -28,17 +28,17 @@ import {
 import { AdvisoryPreviewModal } from "@/components/advisory/AdvisoryModal/AdvisoryModal";
 import { DataTable, RichTextEditor } from "@/components/ui";
 import {
+	ADVISORY_FORM_TYPE_OPTIONS,
+	ADVISORY_STATUS_OPTIONS,
+	ADVISORY_TYPE_OPTIONS,
+} from "@/constants/advisory.constant";
+import {
 	type AdvisoryFormData,
 	advisorySchema,
 } from "@/schemas/advisory.schema";
 import type { Advisory, AdvisoryStatus, AdvisoryType } from "@/types";
 import { getErrorMessage } from "@/types";
 import { getAdvisoryColumns } from "./columns/advisory.columns";
-import {
-	FORM_TYPE_OPTIONS,
-	STATUS_OPTIONS,
-	TYPE_OPTIONS,
-} from "./constants/advisory.constants";
 
 const DEFAULT_FORM_VALUES: AdvisoryFormData = {
 	title: "",
@@ -283,7 +283,7 @@ export default function AdminAdvisoriesPage() {
 				<Group>
 					<Select
 						placeholder="Status"
-						data={STATUS_OPTIONS}
+						data={ADVISORY_STATUS_OPTIONS}
 						value={status}
 						onChange={(value) => {
 							setStatus(value ?? "");
@@ -294,7 +294,7 @@ export default function AdminAdvisoriesPage() {
 					/>
 					<Select
 						placeholder="Type"
-						data={TYPE_OPTIONS}
+						data={ADVISORY_TYPE_OPTIONS}
 						value={type}
 						onChange={(value) => {
 							setType(value ?? "");
@@ -353,7 +353,7 @@ export default function AdminAdvisoriesPage() {
 							render={({ field, fieldState }) => (
 								<Select
 									label="Type"
-									data={FORM_TYPE_OPTIONS}
+									data={ADVISORY_FORM_TYPE_OPTIONS}
 									value={field.value}
 									onChange={field.onChange}
 									error={fieldState.error?.message}

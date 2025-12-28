@@ -1,36 +1,11 @@
 import { Anchor, Badge, Text, Tooltip } from "@mantine/core";
 import { Link } from "react-router-dom";
 import type { Column } from "@/components/ui";
+import { getScanStatusColor } from "@/constants/status.constant";
 import type { RecentAlert } from "@/types";
 import { formatScanScore } from "@/utils/scan-score.util";
+import { truncateUrl } from "@/utils/string.util";
 import { formatTime } from "@/utils/time.util";
-
-/**
- * Get badge color for scan status
- */
-export const getScanStatusColor = (status: string): string => {
-	switch (status) {
-		case "SAFE":
-			return "green";
-		case "PENDING":
-			return "blue";
-		case "SUSPICIOUS":
-			return "yellow";
-		case "MALICIOUS":
-			return "red";
-		case "ADULT_CONTENT":
-			return "orange";
-		default:
-			return "gray";
-	}
-};
-
-/**
- * Format URL for display (truncate)
- */
-const truncateUrl = (url: string, maxLength = 50): string => {
-	return url.length > maxLength ? `${url.slice(0, maxLength)}...` : url;
-};
 
 /**
  * Column definitions for Recent Security Alerts table

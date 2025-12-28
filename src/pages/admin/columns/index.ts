@@ -2,7 +2,7 @@ export {
 	type AdvisoryColumnsOptions,
 	getAdvisoryColumns,
 } from "./advisory.columns";
-export { alertColumns, getScanStatusColor } from "./alert.columns";
+export { alertColumns } from "./alert.columns";
 export {
 	type AdminLinkColumnsOptions,
 	getAdminLinkColumns,
