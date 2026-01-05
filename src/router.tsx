@@ -102,6 +102,14 @@ export const router = createBrowserRouter([
 				path: "/r/:code",
 				lazy: lazyLoad(() => import("@/pages/RedirectPage")),
 			},
+			{
+				path: "/privacy",
+				lazy: lazyLoad(() => import("@/pages/PrivacyPage")),
+			},
+			{
+				path: "/terms",
+				lazy: lazyLoad(() => import("@/pages/TermsPage")),
+			},
 		],
 	},
 
