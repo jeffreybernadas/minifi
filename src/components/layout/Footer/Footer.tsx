@@ -2,13 +2,19 @@ import { Anchor, Group, Text } from "@mantine/core";
 import { Link } from "react-router-dom";
 
 export function Footer() {
+	const year = new Date().getFullYear();
 	return (
-		<Group justify="space-between" py="md">
-			<Text size="sm" c="dimmed">
-				© 2025 Minifi. All rights reserved.
+		<Group justify="space-between" py="md" wrap="wrap" gap="sm">
+			<Text
+				size="sm"
+				c="dimmed"
+				ta={{ base: "center", xs: "left" }}
+				w={{ base: "100%", xs: "auto" }}
+			>
+				© {year} Minifi. All rights reserved.
 			</Text>
 
-			<Group gap="md">
+			<Group gap="md" justify="center" w={{ base: "100%", xs: "auto" }}>
 				<Anchor component={Link} to="/privacy" size="sm" c="dimmed">
 					Privacy
 				</Anchor>

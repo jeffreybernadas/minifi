@@ -273,7 +273,7 @@ export default function LandingPage() {
 						</Text>
 					</Stack>
 
-					<Group>
+					<Group justify="center" wrap="wrap">
 						<Button
 							size="lg"
 							variant="gradient"
