@@ -6,6 +6,8 @@ Frontend application for Minifi - an enterprise-grade URL shortener platform.
 
 🔗 **https://minifi-url.vercel.app**
 
+**Backend API:** [minifi-api](https://github.com/jeffreybernadas/minifi-api)
+
 </div>
 
 ## ✨ Features
