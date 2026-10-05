@@ -24,7 +24,7 @@ export function LinkQrCard({
 		if (qrData.startsWith("http://") || qrData.startsWith("https://"))
 			return qrData;
 
-		// If it looks like a domain path (e.g. storage.lunarix.site/...), assume https
+		// If it looks like a domain path (e.g. storage.lunarix.online/...), assume https
 		if (qrData.includes(".") && qrData.includes("/"))
 			return `https://${qrData}`;
 
